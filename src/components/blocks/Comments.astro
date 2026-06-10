@@ -46,6 +46,10 @@ const apiBase = import.meta.env.PUBLIC_PATRONUM_API ?? '';
       <span class="comments__status" data-status aria-live="polite"></span>
     </div>
   </form>
+
+  <p class="comments__cross">
+    還有一件事。如果你心裡有一道門，是我還沒守到的，往下就能跟我說一聲，我會去守。
+  </p>
 </section>
 
 <script>
@@ -245,5 +249,12 @@ const apiBase = import.meta.env.PUBLIC_PATRONUM_API ?? '';
   .comments__status {
     font-size: var(--text-xs);
     color: var(--color-accent);
+  }
+  .comments__cross {
+    margin-top: var(--space-section-gap);
+    font-size: var(--text-body);
+    line-height: 1.8;
+    color: color-mix(in oklch, var(--color-ink) 70%, transparent);
+    max-width: 42rem;
   }
 </style>
