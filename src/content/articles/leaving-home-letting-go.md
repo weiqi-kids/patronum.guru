@@ -23,7 +23,7 @@ sources:
     language: "en"
     credibility: "high"
   - title: "OECD Family Database"
-    url: "https://www.oecd.org/els/family/database.html"
+    url: "https://www.oecd.org/en/data/datasets/oecd-family-database.html"
     region: "OECD"
     language: "en"
     credibility: "high"
