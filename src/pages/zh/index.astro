@@ -11,6 +11,7 @@ import {
 import { ARTICLE_CATEGORIES } from '@/utils/article-categories';
 import { fmtDate } from '@/utils/date';
 import { withBase } from '@/utils/url';
+import ProposeTopic from '@/components/blocks/ProposeTopic.astro';
 
 const latestArticles = (await getPublishedArticles()).slice(0, 3);
 const thresholds = ARTICLE_CATEGORIES;
@@ -87,6 +88,10 @@ const thresholds = ARTICLE_CATEGORIES;
         <Button variant="secondary" href={withBase('/zh/articles/')}>前往文章列表</Button>
       </div>
     )}
+  </section>
+
+  <section class="container">
+    <ProposeTopic />
   </section>
 </Base>
 

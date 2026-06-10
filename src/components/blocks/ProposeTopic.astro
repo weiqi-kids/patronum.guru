@@ -1,0 +1,157 @@
+---
+// 「提議一道新的門檻」表單。純前端 fetch 打 Worker（PUBLIC_PATRONUM_API）。
+// 提議不公開，只進後端給站長看。沒設 API 時優雅降級。
+const apiBase = import.meta.env.PUBLIC_PATRONUM_API ?? '';
+---
+
+<section class="propose" data-api={apiBase} aria-labelledby="propose-h">
+  <h2 id="propose-h" class="propose__title">提議一道新的門檻</h2>
+  <p class="propose__invite">你心裡還有哪一道門，是我還沒守到的？跟我說，我去守。</p>
+
+  <form class="propose__form" data-form>
+    <input
+      type="text"
+      name="title"
+      maxlength="120"
+      required
+      class="propose__field"
+      autocomplete="off"
+      placeholder="例如：轉學、移民、離婚、第一次當爸媽"
+    />
+    <textarea
+      name="note"
+      maxlength="2000"
+      rows="3"
+      class="propose__field propose__note"
+      placeholder="想多說一點也可以（可留空）"></textarea>
+    <input
+      type="text"
+      name="website"
+      tabindex="-1"
+      autocomplete="off"
+      class="propose__hp"
+      aria-hidden="true"
+    />
+    <div class="propose__actions">
+      <button type="submit" class="propose__submit">說給我聽</button>
+      <span class="propose__status" data-status aria-live="polite"></span>
+    </div>
+  </form>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>('.propose').forEach((root) => {
+    const api = (root.dataset.api ?? '').replace(/\/$/, '');
+    const form = root.querySelector<HTMLFormElement>('[data-form]')!;
+    const status = root.querySelector<HTMLElement>('[data-status]')!;
+    const submit = form.querySelector('button')!;
+
+    if (!api) {
+      status.textContent = '這個功能即將開放。';
+      submit.disabled = true;
+      return;
+    }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const fd = new FormData(form);
+      const title = String(fd.get('title') ?? '').trim();
+      if (!title) return;
+      submit.disabled = true;
+      status.textContent = '送出中…';
+      fetch(`${api}/api/topics`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title,
+          note: fd.get('note'),
+          website: fd.get('website'),
+        }),
+      })
+        .then((r) => r.json().then((d) => ({ ok: r.ok, d })))
+        .then(({ ok, d }) => {
+          submit.disabled = false;
+          if (!ok) {
+            status.textContent = d.error ?? '送出失敗，等一下再試。';
+            return;
+          }
+          status.textContent = '謝謝你，我記下了。我會去看看那道門。';
+          form.reset();
+        })
+        .catch(() => {
+          submit.disabled = false;
+          status.textContent = '送出失敗，等一下再試。';
+        });
+    });
+  });
+</script>
+
+<style>
+  .propose {
+    margin-top: var(--space-section-gap);
+    padding: var(--space-section-gap) var(--space-page-x);
+    background: var(--mist-veil, var(--color-accent-subtle));
+    border-radius: var(--radius-card);
+  }
+  .propose__title {
+    font-family: var(--font-serif);
+    font-size: var(--text-h3);
+    color: var(--color-navy);
+  }
+  .propose__invite {
+    font-size: var(--text-body);
+    line-height: 1.8;
+    color: color-mix(in oklch, var(--color-ink) 78%, transparent);
+    max-width: 42rem;
+  }
+  .propose__form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-width: 42rem;
+    margin-top: 1.25rem;
+  }
+  .propose__field {
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    color: var(--color-ink);
+    background: var(--color-paper);
+    border: 1px solid var(--border-subtle, var(--color-fog));
+    border-radius: var(--radius-sm);
+    padding: 0.75rem 1rem;
+    width: 100%;
+  }
+  .propose__note {
+    resize: vertical;
+  }
+  .propose__hp {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+  }
+  .propose__actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .propose__submit {
+    font-family: var(--font-ui);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--color-paper);
+    background: var(--color-accent);
+    border: none;
+    border-radius: var(--radius-pill);
+    padding: 0.65rem 1.6rem;
+    cursor: pointer;
+  }
+  .propose__submit:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+  .propose__status {
+    font-size: var(--text-xs);
+    color: var(--color-accent);
+  }
+</style>

@@ -1,0 +1,249 @@
+---
+// 文章留言區。純前端 fetch 打 Cloudflare Worker（PUBLIC_PATRONUM_API）。
+// 沒設 API 時優雅降級，顯示「即將開放」。讀者不用帳號。
+interface Props {
+  slug: string;
+}
+const { slug } = Astro.props;
+const apiBase = import.meta.env.PUBLIC_PATRONUM_API ?? '';
+---
+
+<section class="comments" data-api={apiBase} data-slug={slug} aria-labelledby="comments-h">
+  <h2 id="comments-h" class="comments__title">在門前，說說你的事</h2>
+  <p class="comments__invite">
+    我守在這裡很久了，卻一直聽不見你的聲音。你怎麼走過這道門，或者正卡在門口，都在底下跟我說一聲。
+  </p>
+
+  <ul class="comments__list" data-list></ul>
+  <p class="comments__empty" data-empty hidden>還沒有人在這道門前說話。你可以是第一個。</p>
+
+  <form class="comments__form" data-form>
+    <input
+      type="text"
+      name="name"
+      maxlength="40"
+      class="comments__name"
+      autocomplete="off"
+      placeholder="想怎麼稱呼你都行（可留空）"
+    />
+    <textarea
+      name="body"
+      maxlength="2000"
+      rows="4"
+      required
+      class="comments__body"
+      placeholder="在這裡寫下你想說的"></textarea>
+    <input
+      type="text"
+      name="website"
+      tabindex="-1"
+      autocomplete="off"
+      class="comments__hp"
+      aria-hidden="true"
+    />
+    <div class="comments__actions">
+      <button type="submit" class="comments__submit">留在門前</button>
+      <span class="comments__status" data-status aria-live="polite"></span>
+    </div>
+  </form>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>('.comments').forEach((root) => {
+    const api = (root.dataset.api ?? '').replace(/\/$/, '');
+    const slug = root.dataset.slug ?? '';
+    const list = root.querySelector<HTMLElement>('[data-list]')!;
+    const empty = root.querySelector<HTMLElement>('[data-empty]')!;
+    const form = root.querySelector<HTMLFormElement>('[data-form]')!;
+    const status = root.querySelector<HTMLElement>('[data-status]')!;
+    const submit = form.querySelector('button')!;
+
+    const fmt = (ts: number) =>
+      new Date(ts * 1000).toLocaleDateString('zh-Hant', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+
+    function addRow(c: { name: string; body: string; created_at: number }) {
+      empty.hidden = true;
+      const li = document.createElement('li');
+      li.className = 'comment';
+      const head = document.createElement('div');
+      head.className = 'comment__head';
+      const nm = document.createElement('span');
+      nm.className = 'comment__name';
+      nm.textContent = c.name;
+      const dt = document.createElement('time');
+      dt.className = 'comment__date';
+      dt.textContent = fmt(c.created_at);
+      head.append(nm, dt);
+      const bd = document.createElement('p');
+      bd.className = 'comment__body';
+      bd.textContent = c.body;
+      li.append(head, bd);
+      list.append(li);
+    }
+
+    if (!api) {
+      status.textContent = '留言功能即將開放。';
+      submit.disabled = true;
+      return;
+    }
+
+    fetch(`${api}/api/comments?slug=${encodeURIComponent(slug)}`)
+      .then((r) => r.json())
+      .then((d: { comments?: Array<{ name: string; body: string; created_at: number }> }) => {
+        const items = d.comments ?? [];
+        if (!items.length) empty.hidden = false;
+        else items.forEach(addRow);
+      })
+      .catch(() => {
+        status.textContent = '留言暫時讀不到，等一下再來。';
+      });
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const fd = new FormData(form);
+      const body = String(fd.get('body') ?? '').trim();
+      if (!body) return;
+      submit.disabled = true;
+      status.textContent = '送出中…';
+      fetch(`${api}/api/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          slug,
+          name: fd.get('name'),
+          body,
+          website: fd.get('website'),
+        }),
+      })
+        .then((r) => r.json().then((d) => ({ ok: r.ok, d })))
+        .then(({ ok, d }) => {
+          submit.disabled = false;
+          if (!ok) {
+            status.textContent = d.error ?? '送出失敗，等一下再試。';
+            return;
+          }
+          status.textContent = '謝謝你，我收下了。';
+          form.reset();
+          if (d.comment) addRow(d.comment);
+        })
+        .catch(() => {
+          submit.disabled = false;
+          status.textContent = '送出失敗，等一下再試。';
+        });
+    });
+  });
+</script>
+
+<style>
+  .comments {
+    margin-top: var(--space-section-gap);
+    padding-top: var(--space-section-gap);
+    border-top: 1px solid var(--border-subtle, var(--color-fog));
+  }
+  .comments__title {
+    font-family: var(--font-serif);
+    font-size: var(--text-h3);
+    color: var(--color-navy);
+  }
+  .comments__invite {
+    font-size: var(--text-body);
+    line-height: 1.8;
+    color: color-mix(in oklch, var(--color-ink) 78%, transparent);
+    max-width: 42rem;
+  }
+  .comments__list {
+    list-style: none;
+    padding: 0;
+    margin: var(--space-section-gap) 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-card-gap);
+  }
+  .comment {
+    background: var(--mist-veil, var(--color-accent-subtle));
+    border-radius: var(--radius-card);
+    padding: 1.25rem 1.5rem;
+  }
+  .comment__head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+  .comment__name {
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--color-accent);
+  }
+  .comment__date {
+    font-size: var(--text-xs);
+    color: var(--color-text-muted, var(--color-ink));
+    opacity: 0.6;
+  }
+  .comment__body {
+    font-size: var(--text-body);
+    line-height: 1.8;
+    color: var(--color-ink);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+  .comments__empty {
+    font-size: var(--text-body);
+    color: color-mix(in oklch, var(--color-ink) 60%, transparent);
+  }
+  .comments__form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-width: 42rem;
+  }
+  .comments__name,
+  .comments__body {
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    color: var(--color-ink);
+    background: var(--color-paper);
+    border: 1px solid var(--border-subtle, var(--color-fog));
+    border-radius: var(--radius-sm);
+    padding: 0.75rem 1rem;
+    width: 100%;
+  }
+  .comments__body {
+    resize: vertical;
+    min-height: 6rem;
+  }
+  .comments__hp {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+  }
+  .comments__actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .comments__submit {
+    font-family: var(--font-ui);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--color-paper);
+    background: var(--color-accent);
+    border: none;
+    border-radius: var(--radius-pill);
+    padding: 0.65rem 1.6rem;
+    cursor: pointer;
+  }
+  .comments__submit:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+  .comments__status {
+    font-size: var(--text-xs);
+    color: var(--color-accent);
+  }
+</style>

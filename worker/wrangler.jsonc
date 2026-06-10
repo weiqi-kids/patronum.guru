@@ -1,0 +1,20 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "patronum-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-06-01",
+  "observability": { "enabled": true },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "patronum",
+      "database_id": "PASTE_DATABASE_ID_AFTER_d1_create",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "vars": {
+    // 允許打 API 的來源（逗號分隔）。買網址後把 patronum.guru 留著即可。
+    "ALLOWED_ORIGINS": "https://weiqi-kids.github.io,https://patronum.guru,http://localhost:4321"
+  }
+  // 機密：ADMIN_TOKEN 用 `wrangler secret put ADMIN_TOKEN` 設，不寫在這裡。
+}

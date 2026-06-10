@@ -52,6 +52,8 @@ jobs:
         #   3. 預設 'preview'（github.io 草稿、無 CNAME）—— 買網址前的安全預設
         env:
           DEPLOY_TARGET: ${{ github.event.inputs.deploy_target || vars.DEPLOY_TARGET || 'preview' }}
+          # 部署 worker 後設 repo 變數 PATRONUM_API_URL = workers.dev 網址即接上留言/提議功能。
+          PUBLIC_PATRONUM_API: ${{ vars.PATRONUM_API_URL }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v5
