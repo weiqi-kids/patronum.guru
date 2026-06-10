@@ -1,0 +1,426 @@
+---
+import Base from '@/layouts/Base.astro';
+import Breadcrumb from '@/components/ui/Breadcrumb.astro';
+import CategoryTag from '@/components/ui/CategoryTag.astro';
+import AuthorMeta from '@/components/blocks/AuthorMeta.astro';
+import TldrBox from '@/components/blocks/TldrBox.astro';
+import FaqAccordion from '@/components/blocks/FaqAccordion.astro';
+import ReferenceList from '@/components/blocks/ReferenceList.astro';
+import AiDisclosure from '@/components/blocks/AiDisclosure.astro';
+import JsonLd from '@/components/seo/JsonLd.astro';
+import { AUTHOR_NAME, SITE_NAME, SITE_SUFFIX } from '@/data/site';
+import { withBase } from '@/utils/url';
+import type { ArticleCategorySlug } from '@/utils/article-categories';
+import type { Source } from '@/schemas/articles';
+
+interface Props {
+  title: string;
+  description: string;
+  seoTitle?: string;
+  socialTitle?: string;
+  socialDescription?: string;
+  ogImage?: string;
+  /** Article slug (post.id); used to resolve the per-article generated OG image. */
+  ogSlug?: string;
+  lang?: 'zh' | 'en';
+  category: ArticleCategorySlug;
+  variant?: 'prose' | 'cards';
+  publishDate: Date;
+  updatedDate: Date;
+  readingTime?: number;
+  breadcrumbItems: Array<{ label: string; href?: string }>;
+  faq?: Array<{ q: string; a: string }>;
+  sources?: Source[];
+  citationAnswer?: string;
+  // 跨文化光譜框架（spec §3）
+  anchorCulture: string;
+  comparedCultures: string[];
+  suspectCultures?: string[];
+  // 被命名但不解決的價值張力
+  tension?: string;
+  // tender＝死亡/喪親等高敏感題
+  sensitivityLevel?: 'ordinary' | 'tender';
+  // 守望引子：Patronum 站在這道跨不過的門前的一句話
+  patronumVigil?: string;
+  // 生成資訊揭露
+  writeModel?: string;
+  critiqueModel?: string;
+  pipelineVersion?: string;
+  specVersion?: string;
+}
+
+const {
+  title,
+  description,
+  seoTitle,
+  socialTitle,
+  socialDescription,
+  ogImage,
+  ogSlug,
+  lang = 'zh',
+  category,
+  variant = 'prose',
+  publishDate,
+  updatedDate,
+  readingTime,
+  breadcrumbItems,
+  faq,
+  sources,
+  citationAnswer,
+  anchorCulture,
+  comparedCultures,
+  suspectCultures = [],
+  tension,
+  sensitivityLevel = 'ordinary',
+  patronumVigil,
+  writeModel,
+  critiqueModel,
+  pipelineVersion,
+  specVersion,
+} = Astro.props;
+
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const updatedDiffers = updatedDate.getTime() !== publishDate.getTime();
+
+// Per-article generated OG image (satori → sharp PNG, emitted by
+// src/pages/og/zh/[...slug].png.ts). Absolute + base-aware so it resolves under
+// both the production apex domain and the github.io preview base. An explicit
+// `ogImage` prop still wins if a caller passes one.
+const ogImageUrl =
+  ogImage ??
+  (ogSlug
+    ? new URL(withBase(`/og/zh/${ogSlug}.png`), Astro.site).href
+    : undefined);
+
+const articleJsonLd: Record<string, unknown> = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: title,
+  description,
+  inLanguage: lang,
+  author: { '@type': 'Person', name: AUTHOR_NAME },
+  publisher: { '@type': 'Organization', name: SITE_NAME },
+  datePublished: publishDate.toISOString(),
+  dateModified: (updatedDiffers ? updatedDate : publishDate).toISOString(),
+  mainEntityOfPage: { '@type': 'WebPage', '@id': canonical },
+};
+if (ogImageUrl) articleJsonLd.image = ogImageUrl;
+
+const breadcrumbJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: breadcrumbItems.map((item, index) => ({
+    '@type': 'ListItem',
+    position: index + 1,
+    name: item.label,
+    ...(item.href ? { item: new URL(withBase(item.href), Astro.site).href } : {}),
+  })),
+};
+
+const hasFaq = !!faq && faq.length > 0;
+const faqJsonLd = hasFaq
+  ? {
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: faq!.map((item) => ({
+        '@type': 'Question',
+        name: item.q,
+        acceptedAnswer: { '@type': 'Answer', text: item.a },
+      })),
+    }
+  : null;
+
+const jsonLdBlocks: Record<string, unknown>[] = [articleJsonLd, breadcrumbJsonLd];
+if (faqJsonLd) jsonLdBlocks.push(faqJsonLd);
+---
+
+<Base title={seoTitle ?? `${title}｜${SITE_SUFFIX}`} description={description} ogTitle={socialTitle} ogDescription={socialDescription ?? description} ogImage={ogImageUrl} ogType="article" lang={lang}>
+  <Fragment slot="head">
+    <JsonLd data={jsonLdBlocks} />
+    <slot name="head" />
+  </Fragment>
+  <div class="article-layout container">
+    <Breadcrumb items={breadcrumbItems} />
+
+    <header class="article-header" data-sensitivity={sensitivityLevel}>
+      <div class="article-header__meta">
+        <CategoryTag category={category} />
+      </div>
+      <h1>{title}</h1>
+      <AuthorMeta publishDate={publishDate} updatedDate={updatedDate} readingTime={readingTime} />
+    </header>
+
+    {patronumVigil && (
+      <aside class="vigil" aria-label="Patronum 的守望">
+        <span class="vigil__sigil" aria-hidden="true">守望</span>
+        <p class="vigil__text">{patronumVigil}</p>
+      </aside>
+    )}
+
+    <div class:list={['article-grid', `article-grid--${variant}`]}>
+      <div class="article-content">
+        {citationAnswer && <TldrBox summary={citationAnswer} />}
+
+        {comparedCultures.length > 0 && (
+          <section class="divergence" aria-label="跨文化的不同跨法">
+            <h2 class="divergence__title">這道門，不同文化怎麼跨</h2>
+            {tension && (
+              <p class="divergence__tension">
+                <span class="divergence__tension-label">張力：</span>
+                {tension}
+              </p>
+            )}
+            <div class="divergence__grid">
+              <div class="divergence__col divergence__col--anchor">
+                <span class="divergence__role">守望起點</span>
+                <span class="divergence__culture">{anchorCulture}</span>
+              </div>
+              {comparedCultures.map((culture) => (
+                <div class="divergence__col">
+                  <span class="divergence__role">對望</span>
+                  <span class="divergence__culture">{culture}</span>
+                </div>
+              ))}
+            </div>
+            {suspectCultures.length > 0 && (
+              <p class="divergence__suspect">
+                <span class="divergence__suspect-label">霧中未明（資料有限）：</span>
+                {suspectCultures.join('、')}
+              </p>
+            )}
+          </section>
+        )}
+
+        <div class="prose">
+          <slot />
+        </div>
+
+        {hasFaq && (
+          <section class="article-faq">
+            <h2>常見問題</h2>
+            <FaqAccordion items={faq!} />
+          </section>
+        )}
+
+        {sources && sources.length > 0 && (
+          <section class="article-references">
+            <ReferenceList sources={sources} />
+          </section>
+        )}
+
+        <AiDisclosure
+          writeModel={writeModel}
+          critiqueModel={critiqueModel}
+          pipelineVersion={pipelineVersion}
+          specVersion={specVersion}
+          generatedDate={publishDate}
+          updatedDate={updatedDate}
+        />
+        <slot name="after-content" />
+      </div>
+      <aside class="article-sidebar">
+        <slot name="sidebar" />
+      </aside>
+    </div>
+  </div>
+</Base>
+
+<style>
+  .article-layout {
+    padding-block: var(--space-page-y);
+  }
+
+  .article-header {
+    padding-block: 1.5rem 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .article-header__meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .article-header h1 {
+    max-width: 40ch;
+  }
+
+  .vigil {
+    position: relative;
+    margin-block: 0.5rem 1rem;
+    padding: 1.1rem 1.4rem 1.1rem 1.6rem;
+    border-radius: var(--radius-card);
+    border: 1px solid var(--color-accent-light);
+    background: linear-gradient(
+      180deg,
+      var(--color-accent-subtle),
+      color-mix(in oklch, var(--color-accent-subtle) 40%, var(--color-paper))
+    );
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .vigil__sigil {
+    font-family: var(--font-ui);
+    font-size: var(--text-badge);
+    letter-spacing: 0.18em;
+    color: var(--color-accent);
+    text-transform: none;
+  }
+
+  .vigil__text {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: var(--text-body);
+    line-height: 1.85;
+    font-style: italic;
+    color: color-mix(in oklch, var(--color-ink) 88%, transparent);
+  }
+
+  .divergence__tension {
+    margin: -0.25rem 0 1rem;
+    font-family: var(--font-ui);
+    font-size: var(--text-meta);
+    line-height: 1.7;
+    color: color-mix(in oklch, var(--color-ink) 72%, transparent);
+  }
+
+  .divergence__tension-label {
+    font-weight: 600;
+    color: color-mix(in oklch, var(--color-ink) 85%, transparent);
+  }
+
+  .article-grid {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    padding-block: 2rem;
+  }
+
+  .article-grid--prose {
+    background-color: var(--color-paper);
+    border-radius: var(--radius-card);
+    padding: clamp(1rem, 0.5rem + 3vw, 2rem);
+  }
+
+  .article-grid--cards {
+    background: transparent;
+    padding: 0;
+  }
+
+  .article-grid--cards .article-content {
+    max-width: none;
+  }
+
+  .article-grid--cards .prose {
+    max-width: none;
+  }
+
+  .article-content {
+    max-width: 68ch;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .divergence {
+    border: 1px solid var(--color-fog);
+    border-radius: var(--radius-card);
+    padding: 1.25rem 1.5rem;
+  }
+
+  .divergence__title {
+    margin: 0 0 1rem;
+    font-family: var(--font-sans);
+    font-size: var(--text-h3);
+    color: var(--color-ink);
+  }
+
+  .divergence__grid {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: 540px) {
+    .divergence__grid {
+      grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+    }
+  }
+
+  .divergence__col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    padding: 0.75rem 0.9rem;
+    border-radius: var(--radius-sm, 0.5rem);
+    background-color: color-mix(in oklch, var(--color-fog) 35%, var(--color-paper));
+    border: 1px solid var(--color-fog);
+  }
+
+  .divergence__col--anchor {
+    background-color: var(--color-accent-subtle);
+    border-color: var(--color-accent-light);
+  }
+
+  .divergence__role {
+    font-family: var(--font-ui);
+    font-size: var(--text-meta);
+    letter-spacing: 0.04em;
+    color: color-mix(in oklch, var(--color-ink) 55%, transparent);
+  }
+
+  .divergence__culture {
+    font-size: var(--text-body);
+    font-weight: 600;
+    color: var(--color-ink);
+  }
+
+  .divergence__suspect {
+    margin: 1rem 0 0;
+    font-family: var(--font-ui);
+    font-size: var(--text-meta);
+    line-height: 1.7;
+    color: color-mix(in oklch, var(--color-ink) 60%, transparent);
+  }
+
+  .divergence__suspect-label {
+    font-weight: 600;
+    color: color-mix(in oklch, var(--color-ink) 75%, transparent);
+  }
+
+  .article-faq {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .article-references {
+    margin-top: 0;
+  }
+
+  .article-sidebar {
+    display: none;
+    min-width: 0;
+  }
+
+  @media (min-width: 1024px) {
+    .article-grid--prose {
+      grid-template-columns: minmax(0, 0.7fr) minmax(14rem, 0.3fr);
+    }
+
+    .article-sidebar {
+      display: block;
+      position: sticky;
+      top: 6rem;
+      align-self: start;
+    }
+  }
+</style>

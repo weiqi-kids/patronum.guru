@@ -1,0 +1,42 @@
+import type { APIRoute } from 'astro';
+import { getCollection } from 'astro:content';
+import { SITE_NAME, SITE_SUFFIX } from '@/data/site';
+import { stripExt, isValidDate } from '@/utils/articles';
+
+function fmtDate(d: Date): string {
+  return d.toISOString().slice(0, 10);
+}
+
+export const GET: APIRoute = async () => {
+  const articles = await getCollection('articles', ({ data }) => !data.draft);
+
+  const sorted = [...articles]
+    .filter((entry) => isValidDate(entry.data.generatedDate))
+    .sort(
+      (a, b) =>
+        b.data.generatedDate.getTime() - a.data.generatedDate.getTime(),
+    );
+
+  const lines: string[] = [
+    `# ${SITE_NAME} ${SITE_SUFFIX} — 完整內容索引`,
+    '(Generated at build time)',
+    '',
+    '## 文章',
+  ];
+
+  if (sorted.length === 0) {
+    lines.push('（目前尚無文章。）');
+  } else {
+    for (const entry of sorted) {
+      lines.push(
+        `- ${entry.data.title} | /zh/articles/${stripExt(entry.id)}/ | ${fmtDate(entry.data.generatedDate)}`,
+      );
+      lines.push(`  ${entry.data.description}`);
+    }
+  }
+  lines.push('');
+
+  return new Response(lines.join('\n'), {
+    headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+  });
+};

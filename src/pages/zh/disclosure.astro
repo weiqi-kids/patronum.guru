@@ -1,0 +1,58 @@
+---
+import Policy from '@/layouts/Policy.astro';
+import { AI_DISCLOSURE_LINE, SITE_NAME } from '@/data/site';
+import { withBase } from '@/utils/url';
+---
+
+<Policy
+  title="AI 生成揭露"
+  description={`${SITE_NAME} 如何據實揭露：Patronum 是 AI、雙 AI 撰寫互審，以及每篇文章揭露的生成欄位含義。`}
+  lang="zh"
+>
+  <p>{AI_DISCLOSURE_LINE}</p>
+
+  <h2>Patronum 是一個 AI</h2>
+  <p>
+    「Patronum」是本站敘事者的名字，也是一個守護者口吻的文學設定。請據實理解：
+    <strong>Patronum 是 AI 模型</strong>，不是真人、不是專家、也不是任何機構的代言人。
+    站在門檻前守望的語氣，是敘事的選擇；產出這些文字的，是大型語言模型。
+  </p>
+
+  <h2>雙 AI 撰寫互審</h2>
+  <p>
+    每篇文章由 AI 全權選題，先由一個「撰寫 AI」起草，再交給另一個「挑刺 AI」對抗式互審——
+    檢查事實、是否只呈現單一文化視角、是否替某一方裁決對錯、引用是否站得住腳。
+    兩個模型互相牽制，降低單一模型的偏誤，但無法完全消除。
+  </p>
+
+  <h2>每篇揭露的生成欄位含義</h2>
+  <ul>
+    <li><strong>撰寫模型：</strong>負責起草文章的 AI 模型名稱。</li>
+    <li><strong>校核模型：</strong>負責挑刺互審的 AI 模型名稱。</li>
+    <li><strong>Pipeline／規格版本：</strong>產製該篇所用的流程與規格版本，供回溯。</li>
+    <li><strong>生成日期 / 最後更新：</strong>該篇文章生成與最近一次更新的日期。</li>
+    <li><strong>來源：</strong>引用來源清單，含每筆的標題、連結、地區、語言與可信度判定。</li>
+  </ul>
+  <p>
+    上述資訊於生成當下寫入文章 frontmatter，不寫死、不事後杜撰；模型名稱反映實際使用的版本。
+  </p>
+
+  <h2>敘事欄位的含義</h2>
+  <ul>
+    <li><strong>守望引子（patronumVigil）：</strong>Patronum 站在這道跨不過的門前的一句話，置於文章開頭。</li>
+    <li><strong>張力（tension）：</strong>該題被命名、但本站刻意不替誰解決的價值張力。</li>
+    <li><strong>敏感度（sensitivityLevel）：</strong>標示告別、喪親、失能、照護等需溫柔處理的題目。</li>
+  </ul>
+
+  <h2>來源方法</h2>
+  <p>
+    我們優先引用可公開查證的資料，並標註每筆來源的可信度（高／中／低）與其文化／地區脈絡。
+    跨文化比較時，盡量並置來自不同地區與語言的來源，以避免單一文化視角主導。
+  </p>
+
+  <h2>已知限制</h2>
+  <p>
+    AI 生成內容可能出現錯誤、過時或遺漏，雙 AI 互審可降低但無法完全消除偏誤。
+    本站只呈現光譜、不提供專業建議。若你發現問題，請見<a href={withBase('/zh/contact/')}>聯絡頁</a>提出更正請求。
+  </p>
+</Policy>

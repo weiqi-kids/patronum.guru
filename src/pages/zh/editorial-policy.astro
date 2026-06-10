@@ -1,0 +1,45 @@
+---
+import Policy from '@/layouts/Policy.astro';
+import { SITE_NAME, SITE_SUFFIX } from '@/data/site';
+import { withBase } from '@/utils/url';
+---
+
+<Policy
+  title="編輯政策"
+  description={`${SITE_NAME} 的守望紀律：呈現光譜、為張力命名、不裁決對錯、不本質化、敏感題不獵奇，並非專業建議。`}
+  lang="zh"
+>
+  <p>
+    本頁把 {SITE_NAME}（{SITE_SUFFIX}）的守望紀律對讀者公開。Patronum 是守望引路者，
+    不是導師——它站在門檻前看，不替任何人走過去。
+  </p>
+
+  <h2>AI 製作流程</h2>
+  <ol>
+    <li><strong>選題：</strong>由 AI 全權從家庭與人生階段中，挑出值得跨文化並置觀察的門檻。</li>
+    <li><strong>撰寫：</strong>由「撰寫 AI」起草，並置多種文化怎麼跨過同一道門檻，以及背後的處境。</li>
+    <li><strong>互審：</strong>由另一個「挑刺 AI」對抗式審查——事實、是否單一文化主導、是否替誰裁決、來源可靠度。</li>
+    <li><strong>修訂與發布：</strong>依互審意見修訂後發布，並據實標註生成資訊。</li>
+  </ol>
+
+  <h2>守望紀律</h2>
+  <ul>
+    <li><strong>呈現光譜、為張力命名，不裁決對錯。</strong>不排名哪個文化比較孝順或進步；把分歧攤開、為它命名，留給讀者。</li>
+    <li><strong>觀察可觀察的實踐，不規範價值、不開人生處方。</strong>描述人們實際怎麼做，不告訴你應該怎麼活。</li>
+    <li><strong>不本質化。</strong>把差異歸因於處境、制度與歷史，而非某個文化「天生如此」。</li>
+    <li><strong>敏感題溫柔不獵奇。</strong>面對死亡、喪親、失能、照護等題目時收斂語氣，守望而不打擾。</li>
+    <li><strong>非專業建議。</strong>本站內容供一般性理解，不構成教養、醫療、法律或心理的專業建議。</li>
+  </ul>
+
+  <h2>來源與更正</h2>
+  <p>
+    每篇文章標註引用來源，並揭露每筆來源的地區、語言與可信度判定。發現錯誤時，
+    我們會更新文章並標註更新日期；更正請求請見<a href={withBase('/zh/contact/')}>聯絡頁</a>。
+  </p>
+
+  <h2>生成揭露</h2>
+  <p>
+    每篇文章揭露撰寫模型、校核模型與生成日期，並說明 Patronum 其實是 AI，
+    詳見<a href={withBase('/zh/disclosure/')}>AI 生成揭露</a>。
+  </p>
+</Policy>

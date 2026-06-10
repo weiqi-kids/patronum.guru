@@ -1,0 +1,148 @@
+---
+import TopNav from '@/components/blocks/TopNav.astro';
+import Footer from '@/components/blocks/Footer.astro';
+import JsonLd from '@/components/seo/JsonLd.astro';
+import '@/styles/global.css';
+import '@/styles/rwd-fixes.css';
+import { DEFAULT_DESCRIPTION, DEFAULT_OG_IMAGE, SITE_NAME, SITE_SUFFIX } from '@/utils/social-meta';
+import { AUTHOR_NAME } from '@/data/site';
+import { withBase } from '@/utils/url';
+
+/* Self-hosted fonts via fontsource */
+import '@fontsource/inter/400.css';
+import '@fontsource/inter/500.css';
+import '@fontsource/inter/700.css';
+import '@fontsource/noto-sans-tc/400.css';
+import '@fontsource/noto-sans-tc/700.css';
+import '@fontsource/noto-serif-tc/700.css';
+import '@fontsource/source-serif-4/600.css';
+import '@fontsource/source-serif-4/700.css';
+
+interface Props {
+  title: string;
+  description?: string;
+  ogTitle?: string;
+  ogDescription?: string;
+  ogImage?: string;
+  ogType?: string;
+  noindex?: boolean;
+  /** Page language; drives <html lang> and og:locale. Defaults to zh. */
+  lang?: 'zh' | 'en';
+}
+
+const {
+  title,
+  description = DEFAULT_DESCRIPTION,
+  ogTitle,
+  ogDescription,
+  ogImage = DEFAULT_OG_IMAGE,
+  ogType = 'website',
+  noindex = false,
+  lang = 'zh',
+} = Astro.props;
+
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+// `withBase` makes a root-relative image (e.g. the default OG) resolve under the
+// github.io preview base; absolute URLs (per-article OG from Article.astro) are
+// passed through untouched, then anchored to the site origin.
+const ogImageURL = new URL(withBase(ogImage), Astro.site);
+const resolvedOgTitle = ogTitle ?? title;
+const resolvedOgDescription = ogDescription ?? description;
+
+const htmlLang = lang === 'en' ? 'en' : 'zh-Hant-TW';
+const ogLocale = lang === 'en' ? 'en_US' : 'zh_TW';
+
+/* hreflang alternates.
+   Since only /zh/ pages exist in this phase, both zh-Hant and x-default
+   simply point at the canonical URL of the current page.
+   canonicalURL is already built from Astro.url.pathname + Astro.site, which is
+   base-aware (pathname includes the base in preview) and domain-correct in both
+   production and preview modes.
+   TODO: re-enable en hreflang when /en/ is published.
+   To reconstruct the locale-neutral path when /en/ exists:
+     1. Strip the base prefix: path.replace(import.meta.env.BASE_URL, '/').replace('//', '/')
+     2. Then strip the locale segment: neutralPath.replace(/^\/(zh|en)(\/|$)/, '/')
+     3. Build enHref = new URL(withBase(neutralPath === '/' ? '/en/' : `/en${neutralPath}`), Astro.site)
+*/
+// const enHref = new URL(withBase('/en/'), Astro.site);
+
+/* Patronum identity (據實標 AI). publisher/author reflect an AI author. */
+const websiteSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: SITE_NAME,
+  alternateName: SITE_SUFFIX,
+  url: Astro.site?.href,
+  inLanguage: 'zh-TW',
+  publisher: {
+    '@type': 'Organization',
+    name: SITE_NAME,
+    alternateName: SITE_SUFFIX,
+    url: Astro.site?.href,
+  },
+  author: {
+    '@type': 'Organization',
+    name: AUTHOR_NAME,
+    description: '本站文章由 AI 全權選題撰寫、並由另一個 AI 挑刺互審，據實標示生成資訊。',
+  },
+  potentialAction: {
+    '@type': 'SearchAction',
+    target: new URL(withBase('/zh/search/'), Astro.site).href + '?q={search_term_string}',
+    'query-input': 'required name=search_term_string',
+  },
+};
+---
+
+<!doctype html>
+<html lang={htmlLang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#1e2733" />
+
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalURL} />
+
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+
+    <!-- hreflang alternates -->
+    <link rel="alternate" hreflang="zh-Hant" href={canonicalURL} />
+    {/* TODO: re-enable en hreflang when /en/ is published (no /en/ pages this phase). */}
+    <link rel="alternate" hreflang="x-default" href={canonicalURL} />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content={resolvedOgTitle} />
+    <meta property="og:description" content={resolvedOgDescription} />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:image" content={ogImageURL} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content={ogLocale} />
+    <meta property="og:site_name" content={`${SITE_NAME} ${SITE_SUFFIX}`} />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={resolvedOgTitle} />
+    <meta name="twitter:description" content={resolvedOgDescription} />
+    <meta name="twitter:image" content={ogImageURL} />
+
+    <!-- Favicons (base-aware so they resolve under the github.io preview base too) -->
+    <link rel="icon" type="image/svg+xml" href={withBase('/favicon.svg')} />
+    <link rel="icon" type="image/x-icon" href={withBase('/favicon.ico')} />
+    <link rel="apple-touch-icon" sizes="180x180" href={withBase('/apple-touch-icon.png')} />
+
+    <JsonLd data={websiteSchema} />
+    <slot name="head" />
+  </head>
+  <body>
+    <a href="#main-content" class="skip-to-content">跳到主要內容</a>
+    <TopNav />
+    <main id="main-content">
+      <slot />
+    </main>
+    <Footer />
+    <slot name="scripts" />
+  </body>
+</html>
