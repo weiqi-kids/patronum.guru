@@ -8,7 +8,7 @@
     {
       "binding": "DB",
       "database_name": "patronum",
-      "database_id": "PASTE_DATABASE_ID_AFTER_d1_create",
+      "database_id": "fecaa76e-f5f3-417e-a07c-2334887efe46",
       "migrations_dir": "migrations"
     }
   ],
