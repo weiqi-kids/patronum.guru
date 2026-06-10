@@ -49,7 +49,7 @@ export interface RunPipelineOpts {
   maxSelectAttempts?: number;
   /**
    * 設 true 時，採用的選題會寫入去重記錄（recordSelection），
-   * 讓後續 run 不重複同一題。預設 false——
+   * 讓後續 run 不重複同一題。預設 false，
    * STUB 的選題固定，預設不記錄以維持整合測試的確定性。
    */
   dedupe?: boolean;

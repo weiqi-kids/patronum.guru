@@ -1,10 +1,10 @@
 /* ==========================================================================
-   Design Tokens — Patronum · 家庭與人生階段的門檻守望站
+   Design Tokens · Patronum · 家庭與人生階段的門檻守望站
    單一設定檔（SINGLE SETTINGS FILE）：所有 CSS 自訂屬性（色彩 / 字型 / 字級量表 /
    間距 / 圓角 / 陰影）皆集中於此檔。應用層規則 (rules) 在 global.css / rwd-fixes.css。
 
    Palette intent: 「Patronum」守護者在每個人生門檻旁靜靜守望。
-   視覺基調為「光霧」——銀霧、微光、半透明守護形：極淺涼白紙色、柔光霧層漸層、
+   視覺基調為「光霧」，銀霧、微光、半透明守護形：極淺涼白紙色、柔光霧層漸層、
    低對比微光分隔，避免硬邊與強陰影。主重點色用 indigo 暮色 (accent)，
    貼合守護／暮色調；深底用深靛墨 (navy)。warn 為內斂磚紅，僅供警示。
    結構性 token（spacing / radius / shadow / dark-bg 文字系統）沿用上游驗證值。
@@ -25,13 +25,13 @@
   /* ---- 門檻 (life-stage threshold) accents ----
      對齊 article-categories slug（正典5 ＋ 延伸2）。
      皆與主軸和諧：低彩度、收斂，彼此可辨但不喧賓奪主。 */
-  --color-topic-coming-of-age: oklch(0.50 0.10 260);    /* 成年 — 晨藍紫 */
-  --color-topic-living-together: oklch(0.48 0.07 150);  /* 同居 — 低彩鼠尾草綠 */
-  --color-topic-eldercare: oklch(0.50 0.08 70);         /* 長照 — 暖赭金黃昏 */
-  --color-topic-union: oklch(0.52 0.10 350);            /* 結合 — 柔玫 */
-  --color-topic-farewell: oklch(0.45 0.04 285);         /* 告別 — 暮紫灰，收斂 */
-  --color-topic-birth: oklch(0.52 0.09 100);            /* 新生 — 晨光 */
-  --color-topic-leaving-home: oklch(0.48 0.08 240);     /* 離家 — 旅途藍 */
+  --color-topic-coming-of-age: oklch(0.50 0.10 260);    /* 成年：晨藍紫 */
+  --color-topic-living-together: oklch(0.48 0.07 150);  /* 同居：低彩鼠尾草綠 */
+  --color-topic-eldercare: oklch(0.50 0.08 70);         /* 長照：暖赭金黃昏 */
+  --color-topic-union: oklch(0.52 0.10 350);            /* 結合：柔玫 */
+  --color-topic-farewell: oklch(0.45 0.04 285);         /* 告別：暮紫灰，收斂 */
+  --color-topic-birth: oklch(0.52 0.09 100);            /* 新生：晨光 */
+  --color-topic-leaving-home: oklch(0.48 0.08 240);     /* 離家：旅途藍 */
 
   /* ---- Mist & glow（光霧層）---- */
   --mist-veil: color-mix(in oklch, color-mix(in oklch, var(--color-accent) 6%, var(--color-paper)) 88%, transparent); /* 半透明銀霧層 */

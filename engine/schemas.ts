@@ -25,14 +25,14 @@ export type SourceRecord = z.infer<typeof SourceRecordSchema>;
 
 /**
  * 選題引擎輸出。
- * 注意：此處 gateClass 允許 'reject' —— schema 記錄 Patronum 的判定，
+ * 注意：此處 gateClass 允許 'reject' ， schema 記錄 Patronum 的判定，
  * 由下游 gate 負責拒絕 reject 類進生產（只有 'present' 能被呈現為光譜）。
  *
  * 欄位語意（家庭與人生階段門檻）：
- *   gateClass        — 'present'＝這道門檻可被呈現為跨文化態度光譜；
+ *   gateClass        - 'present'＝這道門檻可被呈現為跨文化態度光譜；
  *                      'reject'＝會變成裁決／獵奇／處方／單一文化無對照 → 拒絕。
- *   tension          — 守望者命名的那道張力（門檻兩側的態度為何拉扯）。
- *   sensitivityLevel — 'ordinary'＝一般門檻；'tender'＝高敏感題（死亡／喪親／失能／照護），
+ *   tension          - 守望者命名的那道張力（門檻兩側的態度為何拉扯）。
+ *   sensitivityLevel - 'ordinary'＝一般門檻；'tender'＝高敏感題（死亡／喪親／失能／照護），
  *                      需溫柔、具體、不獵奇。
  */
 export const SelectionSchema = z.object({

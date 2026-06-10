@@ -22,7 +22,7 @@ const COMMANDS = ['run-pipeline', 'fetch', 'help'] as const;
 function printHelp(): void {
   console.log(
     [
-      '引擎 CLI — 用法：pnpm engine <command>',
+      '引擎 CLI - 用法：pnpm engine <command>',
       '',
       '可用指令：',
       '  run-pipeline   跑整條管線（fetch→select→evidence→anchor→write），產出草稿並印摘要',
@@ -46,7 +46,7 @@ async function cmdRunPipeline(): Promise<void> {
     console.log(`被擋階段：${result.stage ?? '（未知）'}`);
     console.log(`原因：${result.rejectReason ?? '（未提供）'}`);
     console.log('');
-    console.log('（管線在閘門前誠實退回，未產出文章——這是預期行為，非錯誤。）');
+    console.log('（管線在閘門前誠實退回，未產出文章，這是預期行為，非錯誤。）');
     return;
   }
 
@@ -71,9 +71,9 @@ async function cmdFetch(): Promise<void> {
   console.log('── fetch 摘要 ──');
   console.log(`新增來源筆數：${result.added}`);
   console.log(`產生總筆數：${result.records.length}`);
-  console.log(`stub 來源：${result.stubbed.length} 個 — ${result.stubbed.join(', ') || '（無）'}`);
+  console.log(`stub 來源：${result.stubbed.length} 個 - ${result.stubbed.join(', ') || '（無）'}`);
   console.log(
-    `real-pending 來源：${result.realPending.length} 個 — ${result.realPending.join(', ') || '（無）'}`,
+    `real-pending 來源：${result.realPending.length} 個 - ${result.realPending.join(', ') || '（無）'}`,
   );
 }
 

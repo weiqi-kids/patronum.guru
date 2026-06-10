@@ -62,7 +62,7 @@ export async function llmStructured<T>(
   opts: StructuredOpts<T>,
 ): Promise<{ data: T; model: string; stub: boolean }> {
   if (isLlmStubMode()) {
-    // STUB：產生替身並驗證 —— 替身若不符 schema 必須 fail loud。
+    // STUB：產生替身並驗證 ， 替身若不符 schema 必須 fail loud。
     const data = opts.schema.parse(opts.stub());
     log.stub(`structured ${opts.step}（STUB 模式，未發 API）`, { step: opts.step });
     return { data, model: 'stub', stub: true };

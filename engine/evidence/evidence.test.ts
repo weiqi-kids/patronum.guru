@@ -56,7 +56,7 @@ const SELECTION: Selection = {
 function rec(over: Partial<SourceRecord> & Pick<SourceRecord, 'id' | 'sourceName' | 'region'>): SourceRecord {
   return SourceRecordSchema.parse({
     id: over.id,
-    title: over.title ?? `${over.sourceName} — 養老照護態度（樣品）`,
+    title: over.title ?? `${over.sourceName} - 養老照護態度（樣品）`,
     url: over.url ?? `https://example.com/${over.id}`,
     region: over.region,
     language: over.language ?? 'en',
@@ -102,7 +102,7 @@ describe('isFirstHandKind（kind → firstHand）', () => {
   });
 });
 
-describe('gatherEvidence — 充分案例', () => {
+describe('gatherEvidence - 充分案例', () => {
   it('≥3 來源跨 ≥2 地區、涵蓋錨點+對照 → status ok', async () => {
     seedStore([
       rec({ id: 's-tw', sourceName: TW_DGBAS, region: 'TW' }),
@@ -142,7 +142,7 @@ describe('gatherEvidence — 充分案例', () => {
   });
 });
 
-describe('gatherEvidence — 不足（資料不足）', () => {
+describe('gatherEvidence - 不足（資料不足）', () => {
   it('來源太少（1 筆）→ insufficient，note 提到資料不足', async () => {
     seedStore([rec({ id: 's-tw', sourceName: TW_DGBAS, region: 'TW' })]);
 
@@ -167,13 +167,13 @@ describe('gatherEvidence — 不足（資料不足）', () => {
   });
 });
 
-describe('gatherEvidence — 白名單強制 + 不杜撰', () => {
+describe('gatherEvidence - 白名單強制 + 不杜撰', () => {
   it('非白名單 sourceName（RandomBlog）被排除於 evidence.sources', async () => {
     seedStore([
       rec({ id: 's-tw', sourceName: TW_DGBAS, region: 'TW' }),
       rec({ id: 's-jp', sourceName: JP_ESTAT, region: 'JP' }),
       rec({ id: 's-us', sourceName: US_UNDESA, region: 'US' }),
-      // 非白名單來源 —— 必須被排除
+      // 非白名單來源 ， 必須被排除
       rec({ id: 's-blog', sourceName: 'RandomBlog', region: 'TW', title: 'RandomBlog 養老雜談' }),
     ]);
 

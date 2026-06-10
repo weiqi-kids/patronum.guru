@@ -180,7 +180,7 @@ describe('writeArticle（E7 撰寫 AI，STUB）', () => {
     expect((loaded.patronumVigil as string).length).toBeGreaterThan(0);
     expect(loaded.pipelineVersion).toBe(PIPELINE_VERSION);
     expect(loaded.specVersion).toBe(SPEC_VERSION);
-    // YAML 內保留為 'YYYY-MM-DD' 字串（或 js-yaml 解析的 Date——統一轉字串比對日期）。
+    // YAML 內保留為 'YYYY-MM-DD' 字串（或 js-yaml 解析的 Date，統一轉字串比對日期）。
     const loadedDate =
       loaded.generatedDate instanceof Date
         ? loaded.generatedDate.toISOString().slice(0, 10)
@@ -195,9 +195,9 @@ describe('writeArticle（E7 撰寫 AI，STUB）', () => {
     );
     expect(draft.body).toContain('我');
     expect(draft.body).toContain('我守在這道'); // 守望者口吻
-    // 模板節：定錨節「## 站在」+ 命名張力節 + 守望收束節。
+    // 模板節：定錨節「## 站在」+ 倒數第二節（標題自取，stub 用「## 兩種都站得住」）+ 守望收束節。
     expect(draft.body).toContain('## 站在');
-    expect(draft.body).toContain('## 命名這道張力');
+    expect(draft.body).toContain('## 兩種都站得住');
     expect(draft.body).toContain('## 我守在這道門前');
   });
 

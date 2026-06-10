@@ -1,6 +1,6 @@
 // 引擎用的極簡結構化 logger。
 // 刻意不在 module top-level 呼叫 Date.now()/new Date()，而是在每次 log 呼叫時
-// 取當下時間 —— 這樣 import 此模組不會有副作用，且時間戳反映實際發生時刻。
+// 取當下時間 ， 這樣 import 此模組不會有副作用，且時間戳反映實際發生時刻。
 
 type Meta = Record<string, unknown> | undefined;
 

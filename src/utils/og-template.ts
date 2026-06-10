@@ -5,14 +5,14 @@ import { loadFonts } from './og-fonts';
  * OG card generator for patronum.guru.
  *
  * Restrained palette mirroring the design tokens (hex equivalents of the OKLCH
- * tokens — satori renders in sRGB):
+ * tokens, satori renders in sRGB):
  *   navy   = oklch(0.27 0.025 255)  ≈ #1e2733  (background)
  *   paper  = oklch(0.97 0.008 85)   ≈ #f8f5ef  (title text on navy)
  *   accent = oklch(0.52 0.07 75)    ≈ #816339  (bronze emphasis rule / label)
  *   meta   = oklch(0.75 0.01 220)   ≈ #a7b0b2  (footer text)
  *
  * NOTE: a fixed "AI 生成圖" label area is reserved here. C2PA manifest wiring
- * arrives in Phase 4 — for now this is just the visible label/space.
+ * arrives in Phase 4. For now this is just the visible label/space.
  */
 const NAVY_HEX = '#1e2733';
 const PAPER_HEX = '#f8f5ef';

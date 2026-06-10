@@ -66,7 +66,7 @@ const CULTURE_REGION_RULES: CultureRegionRule[] = [
 
 /**
  * 跨文化／全球性地區：這些地區的來源（OECD、global）對所有具名文化都「相關」，
- * 但不算「文化專屬證據」——它們不能單獨支撐某個文化的證據需求
+ * 但不算「文化專屬證據」，它們不能單獨支撐某個文化的證據需求
  * （見 cultureEvidence 建構：culture-specific 的判定排除這些地區）。
  */
 const CROSS_CULTURAL_REGIONS = new Set(['OECD', 'global', 'Global', 'GLOBAL']);
@@ -120,7 +120,7 @@ interface RelevantSource {
   entry: SourceWhitelistEntry;
   /** 此來源相關的具名文化（可能多個；跨文化來源相關於全部）。 */
   cultures: string[];
-  /** 是否為跨文化／全球來源（OECD/global）——不算任何文化的「專屬」證據。 */
+  /** 是否為跨文化／全球來源（OECD/global），不算任何文化的「專屬」證據。 */
   crossCultural: boolean;
 }
 
@@ -235,7 +235,7 @@ export async function gatherEvidence(
     return { culture, sources };
   });
 
-  // 每個文化「文化專屬」來源數（排除跨文化來源）——用於充分度閘門。
+  // 每個文化「文化專屬」來源數（排除跨文化來源），用於充分度閘門。
   const cultureSpecificCount = new Map<string, number>();
   for (const culture of cultures) {
     const n = relevant.filter((r) => !r.crossCultural && r.cultures.includes(culture)).length;

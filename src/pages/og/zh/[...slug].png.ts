@@ -7,11 +7,11 @@ import { generateOgSvg } from '@/utils/og-template';
  * Per-article Open Graph image, generated at build time.
  *
  * Satori renders the title (Noto Sans TC) to a self-contained, path-based SVG
- * (vector glyph outlines — no font lookup needed to rasterize), which sharp then
+ * (vector glyph outlines, no font lookup needed to rasterize), which sharp then
  * turns into a 1200x630 PNG. Because the glyphs are already outlined, sharp does
  * not need any CJK font installed to produce correct output.
  *
- * Routes: /og/zh/<post.id>.png — one per published zh article.
+ * Routes: /og/zh/<post.id>.png, one per published zh article.
  */
 export async function getStaticPaths() {
   const posts = await getCollection(

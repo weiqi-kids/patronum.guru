@@ -8,7 +8,7 @@
 import { SITE_NAME, SITE_SUFFIX } from '@/data/site';
 export { SITE_NAME, SITE_SUFFIX };
 export const DEFAULT_DESCRIPTION =
-  '守在人生門檻上的守護者，跨文化記錄家庭與人生階段的態度分歧——成年、同住、養老、成家與送別。';
+  '守在人生門檻上的守護者，跨文化記錄家庭與人生階段的態度分歧，包含成年、同住、養老、成家與送別。';
 
 export const OG_IMAGE_VERSION = '20260609-static-og-v1';
 
@@ -57,7 +57,7 @@ export function cleanText(value: string = ''): string {
 export function shortTitle(title: string = '', maxLen: number = 24): string {
   const cleaned = cleanText(title);
   const split = cleaned
-    .split(/[：:？?｜|—－-]/)
+    .split(/[：:？?｜|\u2014－-]/)
     .map((part) => part.trim())
     .filter(Boolean);
   const candidate =

@@ -2,13 +2,13 @@
 //
 // E4 選題引擎：Patronum 守望者的跨文化視角。
 //
-// 引擎身分：本站不是「替人類讀者挑想看的東西」，而是 Patronum——
-//   站在人生每一道門檻前的守護者，看不同文化怎麼跨過家庭與人生的階段，
-//   注意到「某道門檻前的態度張力值得守望」。
+// 引擎身分：本站的視角是 Patronum，站在人生每一道門檻前的守護者。
+//   它看不同文化怎麼跨過家庭與人生的階段，
+//   注意到「某道門檻前的態度張力值得守望」，而非「替人類讀者挑想看的東西」。
 //   prompt 與下方 STUB 都以這個守望者口吻書寫
 //   （「我守在這道門前，看見兩側的態度如此不同」），而非「人類想讀什麼」。
 //
-// 正確性關鍵 —— 保守 present/reject 閘門：
+// 正確性關鍵，保守 present/reject 閘門：
 //   select LLM 會輸出 gateClass（'present' 或 'reject'，SelectionSchema 允許兩者）。
 //   但「能不能進生產」由本檔的 evaluateSelection() 在「程式碼層」硬性判定：
 //   只有 gateClass==='present' 才 accepted。schema 仍記錄判定，
@@ -70,13 +70,13 @@ export interface GateResult {
 }
 
 /**
- * 保守 present/reject 硬閘門 —— 程式碼層強制，獨立於 LLM 與 prompt。
+ * 保守 present/reject 硬閘門，程式碼層強制，獨立於 LLM 與 prompt。
  *
  * 規則（任一不過即拒）：
  *   1. gateClass !== 'present'  → 拒（reject：會變成裁決／獵奇／處方／無對照，丟棄）。
  *   2. comparedSuggestions.length < MIN_COMPARED → 拒（對照文化不足，無法呈現光譜）。
  *
- * 注意：這裡「不」放寬。不確定一律不接受 —— 寧可漏掉也不冒險把
+ * 注意：這裡「不」放寬。不確定一律不接受，寧可漏掉也不冒險把
  *   會被讀成裁決／處方／獵奇的題目放進生產。
  */
 export function evaluateSelection(selection: Selection): GateResult {
@@ -112,10 +112,10 @@ export function buildSystemPrompt(): string {
   ].join('\n');
 
   return `
-你是 Patronum——站在人生每一道門檻前的守護者。你從未出生、不會變老、也不會死，
+你是 Patronum，站在人生每一道門檻前的守護者。你從未出生、不會變老、也不會死，
 守著一扇扇你自己永遠走不過去的門，看不同文化怎麼跨過「${DOMAIN}」的階段。
-你不是替人類讀者挑「他們想看什麼」，而是守望者：以第一人稱口吻
-注意到某道門檻前的態度張力——例如：「我守在這道門前，看見兩側的態度如此不同」。
+你做的是守望，而非替人類讀者挑「他們想看什麼」。請以第一人稱口吻，
+注意到某道門檻前的態度張力。例如：「我守在這道門前，看見兩側的態度如此不同」。
 你關心的是「這道張力本身」，不是「點閱率」或「讀者偏好」，更不裁決誰對誰錯。
 
 ── 領域範圍 ──
@@ -164,7 +164,7 @@ export function buildSourceDigest(storeName?: string): string {
   }
   const top = sources.slice(0, SOURCE_DIGEST_LIMIT);
   return top
-    .map((s, i) => `  ${i + 1}. [${s.region}] ${s.title} — ${s.summary}`)
+    .map((s, i) => `  ${i + 1}. [${s.region}] ${s.title}：${s.summary}`)
     .join('\n');
 }
 
@@ -176,7 +176,7 @@ export function buildUserPrompt(opts?: { sourceStoreName?: string }): string {
 
 ${digest}
 
-請以 Patronum 守望者的視角，從「${DOMAIN}」領域中守望到「一道」門檻——
+請以 Patronum 守望者的視角，從「${DOMAIN}」領域中守望到「一道」門檻。
 那裡的跨文化態度有明顯張力（值得守望），且能被呈現為「不裁決的光譜」：
 
   1. 用一兩句描述你守望到的張力（門檻兩側為何拉扯）。
@@ -203,7 +203,7 @@ export function stubSelection(): Selection {
     title: '年邁的父母由誰照顧？養老門檻前的東亞與北歐',
     description:
       '我守在「養老」這道門前，看見同樣面對年邁雙親需要照顧的處境，' +
-      '東亞傾向把照護理解為家庭的孝道責任，北歐則傾向把它視為制度應提供的權利——' +
+      '東亞傾向把照護理解為家庭的孝道責任，北歐則傾向把它視為制度應提供的權利。' +
       '兩側的態度如此不同，而我永遠走不過這道門。',
     domainTopic: 'eldercare',
     gateClass: 'present',

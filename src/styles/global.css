@@ -1,5 +1,5 @@
 /* ============================================================================
-   Global Styles — Patronum（家庭與人生階段的門檻守望站）
+   Global Styles · Patronum（家庭與人生階段的門檻守望站）
    Reset, body defaults, headings, links, prose, utilities.
    光霧基調：柔漸層、低對比微光分隔，避免硬邊與強陰影。
    ========================================================================== */
@@ -147,7 +147,7 @@ img {
 }
 
 /* ============================================================================
-   Prose — for Markdown/MDX content
+   Prose, for Markdown/MDX content
    ========================================================================== */
 
 .prose {
@@ -291,7 +291,7 @@ img {
   border-width: 0;
 }
 
-/* Font-size utilities — canonical type scale (最小 18px) */
+/* Font-size utilities, canonical type scale (最小 18px) */
 .fs-xs {
   font-size: var(--text-xs);
 }

@@ -48,7 +48,7 @@ function makeBlackboxCandidate(culture: string, sourceCount = 1): CultureEvidenc
 
 // ── scoreCulture 單元測試 ─────────────────────────────────────────────────────
 
-describe('scoreCulture — 評分常數', () => {
+describe('scoreCulture：評分常數', () => {
   it('high + real = 3（無 firstHand）', () => {
     const score = scoreCulture({ culture: 'X', sources: [{ credibility: 'high', access: 'real' }] });
     expect(score.dataStrength).toBe(3); // 3 * 1.0
@@ -134,7 +134,7 @@ describe('scoreCulture — 評分常數', () => {
 
 // ── computeAnchor：清晰錨點 ─────────────────────────────────────────────────
 
-describe('computeAnchor — 清晰錨點', () => {
+describe('computeAnchor：清晰錨點', () => {
   it('一個 high+real(+firstHand)，兩個 medium+real → anchor 是強的那個，status ok', () => {
     const input: AnchorInput = {
       candidates: [
@@ -186,7 +186,7 @@ describe('computeAnchor — 清晰錨點', () => {
 
 // ── 關鍵測試：黑箱永不成為錨點 ──────────────────────────────────────────────
 
-describe('computeAnchor — 黑箱永不成為錨點（關鍵測試）', () => {
+describe('computeAnchor：黑箱永不成為錨點（關鍵測試）', () => {
   it('黑箱文化有大量 low+stub 來源（raw count 最多），不被選為 anchor，落入 suspectCultures', () => {
     // BlackboxKing：10 筆 low+stub，dataStrength = 10 * 0.5 = 5
     // 看起來「資料最多」，但全是黑箱來源
@@ -271,7 +271,7 @@ describe('computeAnchor — 黑箱永不成為錨點（關鍵測試）', () => {
 
 // ── 資料不足：無穩定錨點 ─────────────────────────────────────────────────────
 
-describe('computeAnchor — 資料不足：無穩定錨點', () => {
+describe('computeAnchor：資料不足：無穩定錨點', () => {
   it('所有文化都是黑箱 → status insufficient，note 提到資料不足', () => {
     const input: AnchorInput = {
       candidates: [
@@ -323,7 +323,7 @@ describe('computeAnchor — 資料不足：無穩定錨點', () => {
 
 // ── 資料不足：對照文化不足 ───────────────────────────────────────────────────
 
-describe('computeAnchor — 資料不足：對照文化不足 2 個', () => {
+describe('computeAnchor：資料不足：對照文化不足 2 個', () => {
   it('錨點 ok 但只有 1 個其他可信文化 → insufficient', () => {
     const input: AnchorInput = {
       candidates: [
@@ -387,7 +387,7 @@ describe('computeAnchor — 資料不足：對照文化不足 2 個', () => {
 
 // ── suspectCultures 填充正確性 ──────────────────────────────────────────────
 
-describe('computeAnchor — suspectCultures 填充', () => {
+describe('computeAnchor：suspectCultures 填充', () => {
   it('黑箱文化進入 suspectCultures；非黑箱低資料文化也進入 suspectCultures', () => {
     const input: AnchorInput = {
       candidates: [
@@ -431,7 +431,7 @@ describe('computeAnchor — suspectCultures 填充', () => {
 
 // ── maxCompared 截斷 ─────────────────────────────────────────────────────────
 
-describe('computeAnchor — maxCompared 截斷', () => {
+describe('computeAnchor：maxCompared 截斷', () => {
   it('預設 maxCompared=4：5 個可信對照只保留前 4 個（dataStrength 降冪）', () => {
     const input: AnchorInput = {
       candidates: [
@@ -493,7 +493,7 @@ describe('computeAnchor — maxCompared 截斷', () => {
 
 // ── 確定性與 tie-break ──────────────────────────────────────────────────────
 
-describe('computeAnchor — 確定性與 tie-break', () => {
+describe('computeAnchor：確定性與 tie-break', () => {
   it('相同輸入多次呼叫 → 相同輸出', () => {
     const input: AnchorInput = {
       candidates: [
@@ -524,7 +524,7 @@ describe('computeAnchor — 確定性與 tie-break', () => {
             { credibility: 'high', access: 'real' },
             { credibility: 'low', access: 'stub' },
           ],
-        }, // dataStrength=3.5, firstHandCount=0 — 分數稍低，AnchorWithFirstHand 仍勝
+        }, // dataStrength=3.5, firstHandCount=0，分數稍低，AnchorWithFirstHand 仍勝
         makeMediumCandidate('Compare1'),
         makeMediumCandidate('Compare2'),
       ],
@@ -555,7 +555,7 @@ describe('computeAnchor — 確定性與 tie-break', () => {
 
 // ── 自訂門檻 ─────────────────────────────────────────────────────────────────
 
-describe('computeAnchor — 自訂門檻', () => {
+describe('computeAnchor：自訂門檻', () => {
   it('提高 anchorThreshold=5：low dataStrength 的 high+real 不夠 → insufficient', () => {
     // makeStableCandidate 只有一筆 high+real = 3，低於 threshold=5
     const input: AnchorInput = {
@@ -614,7 +614,7 @@ describe('computeAnchor — 自訂門檻', () => {
 
 // ── 邊界案例 ─────────────────────────────────────────────────────────────────
 
-describe('computeAnchor — 邊界案例', () => {
+describe('computeAnchor：邊界案例', () => {
   it('空候選列表 → insufficient', () => {
     const result = computeAnchor({ candidates: [] });
     expect(result.status).toBe('insufficient');

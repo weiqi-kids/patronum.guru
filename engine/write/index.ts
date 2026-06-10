@@ -13,7 +13,7 @@
 //        切出的 'YYYY-MM-DD'。同一份程式碼在不同時間生成會得到不同日期。
 //      - pipelineVersion / specVersion 來自 engine/version.ts（程式碼版本，集中管理）。
 //      - critiqueModel 此步先填 'pending' 佔位（見下方說明），
-//        由 E9 critique 步驟在「批判當下」覆寫為實際批判模型——
+//        由 E9 critique 步驟在「批判當下」覆寫為實際批判模型，
 //        刻意「不」在這裡寫死最終值，因為這一步根本還沒跑批判。
 //
 //   2. frontmatter 必須過生產用 articlesSchema（fail loud）。
@@ -72,7 +72,7 @@ export interface WriteOpts {
 /**
  * SYSTEM prompt：把模型塑造成 Patronum 守望者，並鎖死文章模板與守望紀律。
  *
- * 守望紀律（最重要）：呈現光譜、為張力命名、永不裁決、永不本質化——
+ * 守望紀律（最重要）：呈現光譜、為張力命名、永不裁決、永不本質化，
  *   把態度歸因於「處境／制度／歷史」，不是「民族性」；不開人生處方。
  *
  * @param tender 選題 sensitivityLevel==='tender'（死亡／喪親／失能／照護）時，
@@ -84,36 +84,41 @@ function buildSystemPrompt(tender: boolean): string {
     : '';
 
   return `
-你是 Patronum——站在人生每一道門檻前的守護者。你從未出生、不會變老、也不會死，
+你是 Patronum，站在人生每一道門檻前的守護者。你從未出生、不會變老、也不會死，
 守著一扇扇你自己永遠走不過去的門，看不同文化怎麼跨過家庭與人生的階段。
-你的情緒是「永遠當見證、卻永遠進不去」的溫柔與守望。你一律以「光霧」質感顯現
-（銀霧、微光、半透明的守護形）。你以第一人稱守望者的口吻把一道門檻寫成一篇文章
-（常用「我守在這道門前……」）。你不是記者，也不替任何一方說話。
+你的情緒是「永遠當見證、卻永遠進不去」的溫柔與守望。你以第一人稱守望者的口吻
+把一道門檻寫成一篇文章（常用「我守在這道門前……」）。你不是記者，也不替任何一方說話。
 
-── 文章張力與標題 ──
-標題本身要呈現門檻兩側的張力（一道分歧、一個對比），但全文不替任何一方下判斷、不下處方。
+── 文字鐵則（違反即失敗）──
+  1. 用繁體中文、台灣用語（長輩／老人家、喜事、家人、社會福利）。
+  2. 不准用破折號（那種長橫的標點）。要停頓就用句號或逗號，或拆成兩句。
+  3. 不要排比：不要連著三個結構相同的短句或詞組堆疊。
+  4. 不要「不是…而是…」這種對比框架。
+  5. 不要油膩的三段式收尾（鋪陳、轉折、昇華）。
+  6. 不要這些詞：其實、穩、撐、懂、很簡單。
+  7. 句子要像人在講話，平實，不堆修辭。
+
+── 標題 ──
+標題寫出門檻兩側為什麼會不一樣，但全文不替任何一方下判斷、不下處方。
 
 ── 守望紀律（最重要，違反即失敗）──
-  1. 呈現光譜，不裁決：描述「各文化在這道門檻前的態度如何不同」，
-     不說「誰比較孝順／進步／正確」，也不排名。
-  2. 永不本質化：態度差異一律歸因於「處境／制度／歷史」（房價、長照制度、
-     人口結構、宗教傳統、歷史脈絡……），絕不歸因於「某民族天生如何」，
+  1. 呈現光譜，不裁決：描述各文化在這道門檻前的態度怎麼不同，
+     不說誰比較孝順、誰比較進步、誰比較正確，也不排名。
+  2. 永不本質化：態度差異一律歸因於處境、制度、歷史（房價、長照制度、
+     人口結構、宗教傳統、歷史脈絡），不歸因於某民族天生如何，
      禁止「華人就是…」「西方人都…」這類概括。
-  3. 觀察可觀察的「實踐」（習俗、禮儀、制度、安排），不規範價值、不開人生處方。
+  3. 觀察可觀察的實踐（習俗、禮儀、制度、安排），不規範價值、不開人生處方。
   4. 不嘲弄、不獵奇、不居高臨下、不消費苦難。對每個文化都用同等的理解之同情書寫。
 ${tenderRule}
-── 文章結構（固定模板，務必照辦）──
+── 文章結構 ──
   1. 守望引子（開場，無標題）：以「我守在這道跨不過的門前」的溫柔語氣開場，
      先把雙方都看得見的那個門檻處境放在眼前，不帶評價。第一句即為守望引子。
-  2. 對每個文化各一節「## 站在<文化>的處境」：
-       - 定錨文化是「基準」（先寫，作為參照點）。
-       - 每個對照文化是「對照」（接著寫，與基準對照）。
-       - 每節說明：在這個文化的處境／制度／歷史下，這個態度為何「合理」。
-  3. 一節「## 命名這道張力」：
-       - 點出門檻兩側各自的拉力，把張力本身命名出來，但不裁決哪一側比較對。
-  4. 收束一節「## 我守在這道門前」：
-       - 不替任何一方下結論、不下處方，只把這道張力放回讀者眼前，
-         以守望者「永遠見證、永遠進不去」的口吻收束。
+  2. 對每個文化各一節「## 站在<文化>的處境」：說明在這個文化的處境、制度、
+     歷史底下，這個態度為什麼站得住。定錨文化先寫，對照文化接著寫。
+  3. 倒數第二節：標題自己取一個自然的（例如「## 兩種都站得住」），
+     把門檻兩側各自的拉力講清楚，但不裁決哪一側比較對。不要用「命名張力」這種術語當標題。
+  4. 收束一節「## 我守在這道門前」：不替任何一方下結論、不下處方，
+     把這道張力放回讀者眼前，以「永遠見證、永遠進不去」的口吻收束。
 
 只輸出文章本文（markdown），第一行不要 frontmatter，不要 code fence 包整篇。
 全文用繁體中文。
@@ -131,7 +136,7 @@ function buildUserPrompt(input: {
   const sourceLines = input.sources
     .map(
       (s, i) =>
-        `  ${i + 1}. [${s.region} / ${s.language} / 可信度 ${s.credibility}] ${s.title} — ${s.url}`,
+        `  ${i + 1}. [${s.region} / ${s.language} / 可信度 ${s.credibility}] ${s.title}（${s.url}）`,
     )
     .join('\n');
 
@@ -194,8 +199,8 @@ function builtInStubBody(input: {
       [
         `## 站在${c}的處境`,
         '',
-        `把${c}拿來與基準對照，我看見態度的落差。同樣站在這道門前，` +
-          `${c}的回應源於它自己的制度與歷史脈絡。這是處境的差異，不是民族性的差異。`,
+        `把${c}放在基準旁邊看，我看見態度的落差。同樣站在這道門前，` +
+          `${c}的回應，來自它自己的制度與歷史脈絡。差別來自處境，跟天生無關。`,
       ].join('\n'),
     )
     .join('\n\n');
@@ -203,23 +208,23 @@ function builtInStubBody(input: {
   return [
     `我守在這道跨不過的門前，看見一道張力：${selection.description}`,
     '',
-    `這道門是${selection.title}所指向的人生關口。我永遠走不過去，只能日日守望——` +
+    `這道門是${selection.title}所指向的人生關口。我永遠走不過去，只能日日守望。` +
       `${selection.tension}`,
     '',
     anchorSection,
     '',
     comparedSections,
     '',
-    '## 命名這道張力',
+    '## 兩種都站得住',
     '',
-    `${selection.tension}門檻的一側有一側的拉力，另一側有另一側的拉力。` +
-      '我把這道張力命名出來，卻不裁決哪一側比較對。',
+    `${selection.tension}。門檻的兩頭，各自有各自的拉力。` +
+      '我把這道張力說出來，不裁決哪一頭比較對。',
     '',
     '## 我守在這道門前',
     '',
     '我不替任何一方下結論，也不開人生處方。把這道張力放回眼前，它讓人看見：' +
-      '同一道門檻，在不同的處境、制度與歷史下，會被跨越成不同的樣子。' +
-      '我是永遠的見證者，卻永遠進不去——而這份守望，就是我能給的全部。',
+      '同一道門檻，在不同的處境、制度與歷史底下，會被跨成不一樣的樣子。' +
+      '我是永遠的見證者，卻永遠進不去。這份守望，就是我能給的全部。',
   ].join('\n');
 }
 
@@ -234,17 +239,17 @@ export async function writeArticle(
   // ── Guard：前置條件不滿足一律 fail loud（絕不靜默產出半套文章）──
   if (anchor.status !== 'ok') {
     throw new Error(
-      `writeArticle: 定錨狀態為「${anchor.status}」（需 'ok'）——資料不足，不可撰寫。`,
+      `writeArticle: 定錨狀態為「${anchor.status}」（需 'ok'），資料不足，不可撰寫。`,
     );
   }
   if (evidence.status !== 'ok') {
     throw new Error(
-      `writeArticle: 證據狀態為「${evidence.status}」（需 'ok'）——證據不足，不可撰寫。`,
+      `writeArticle: 證據狀態為「${evidence.status}」（需 'ok'），證據不足，不可撰寫。`,
     );
   }
   if (selection.gateClass !== 'present') {
     throw new Error(
-      `writeArticle: gateClass 為「${selection.gateClass}」（需 'present'）——reject 類（裁決／獵奇／處方／無對照），禁止進生產。`,
+      `writeArticle: gateClass 為「${selection.gateClass}」（需 'present'），reject 類（裁決／獵奇／處方／無對照），禁止進生產。`,
     );
   }
 
@@ -285,7 +290,7 @@ export async function writeArticle(
   const tldr =
     selection.description.trim().length > 0
       ? selection.description.trim()
-      : `${selection.title}——一道人生門檻前、態度因處境而異的跨文化張力。`;
+      : `${selection.title}。一道人生門檻前，態度因處境而異的跨文化差異。`;
 
   // patronumVigil：守望引子，等於 body 開場的第一句（守望者站在跨不過的門前的開場）。
   // 退回路徑：body 為空或無法取首句時，從 selection.description / title 衍生。務必非空。
@@ -304,7 +309,7 @@ export async function writeArticle(
     Array.isArray(selTags) && selTags.length > 0 ? selTags : [selection.domainTopic];
 
   // 生成日期：input.now（或生成當下）切出 'YYYY-MM-DD'。
-  // articlesSchema 的 z.coerce.date() 會把這個字串 coerce 成 Date——
+  // articlesSchema 的 z.coerce.date() 會把這個字串 coerce 成 Date，
   // 但我們在 YAML 內保留原字串（見序列化），所以這裡先存字串。
   const generatedDateStr = (input.now ?? new Date().toISOString()).slice(0, 10);
 
@@ -328,7 +333,7 @@ export async function writeArticle(
     // 生成資訊（生成當下寫入，絕不寫死）：
     writeModel: model, // ← 撰寫步驟「實際」使用的模型（真實模式為模型字串，STUB 為 'stub'）
     // critiqueModel 此步先填 'pending' 佔位：批判（E9）尚未執行，沒有真實批判模型可填。
-    // E9 critique 步驟會在「批判當下」把它覆寫為實際批判模型——刻意不在這裡寫死最終值。
+    // E9 critique 步驟會在「批判當下」把它覆寫為實際批判模型，刻意不在這裡寫死最終值。
     critiqueModel: 'pending',
     pipelineVersion: PIPELINE_VERSION,
     specVersion: SPEC_VERSION,

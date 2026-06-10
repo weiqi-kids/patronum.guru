@@ -66,8 +66,8 @@ function buildSampleRecords(
   const records: SourceRecord[] = [];
 
   const sampleTitles = [
-    `${entry.name} — 跨文化家庭與人生階段態度概覽（樣品）`,
-    `${entry.name} — 養老照護與世代同住安排（樣品）`,
+    `${entry.name} - 跨文化家庭與人生階段態度概覽（樣品）`,
+    `${entry.name} - 養老照護與世代同住安排（樣品）`,
   ];
 
   for (let n = 1; n <= count; n++) {

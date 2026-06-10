@@ -32,7 +32,7 @@ describe('runFetch', () => {
     expect(result.records.length).toBeGreaterThan(0);
 
     for (const rec of result.records) {
-      // Throws ZodError if invalid — this is the loudest possible assertion
+      // Throws ZodError if invalid - this is the loudest possible assertion
       expect(() => SourceRecordSchema.parse(rec)).not.toThrow();
     }
   });
