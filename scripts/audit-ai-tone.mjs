@@ -23,12 +23,26 @@ const strictMode = process.env.CONTENT_AUDIT_STRICT === '1';
 const aiPhrasePatterns = [
   ['不是…而是', /不是.+?而是/g],
   ['不只是…更是', /不只是.+?更是/g],
+  ['不僅僅是…更是', /不僅僅?是.+?更是/g],
+  ['事實上（開頭）', /(^|[。！？，、；：「」（）\s])事實上/g],
+  ['不可否認', /不可否認/g],
   ['換句話說', /換句話說/g],
   ['這件事值得說清楚', /這件事值得說清楚/g],
   ['真正的問題是', /真正的問題是/g],
   ['我一直覺得', /我一直覺得/g],
   ['老實講', /老實講/g],
   ['有人說', /有人說/g],
+];
+
+// Blacklisted AI-overused vocabulary — flagged wherever they appear in prose
+const blacklistTermPatterns = [
+  '深入探討',
+  '交織',
+  '總體而言',
+  '值得注意的是',
+  '顯而易見',
+  '不言而喻',
+  '縮影',
 ];
 
 // Vague-citation patterns — generic, not domain-specific
@@ -78,6 +92,9 @@ function warningMessage(type, label) {
   if (type === 'vague-reference') {
     return `偵測到模糊引用「${label}」，建議人工檢查是否需要補來源或改成主編判讀。`;
   }
+  if (type === 'blacklist-term') {
+    return `偵測到黑名單詞彙「${label}」，請改寫為平實白話的說法。`;
+  }
   return `偵測到 raw enum 字串「${label}」，建議人工檢查是否應轉為前台可讀文字。`;
 }
 
@@ -116,6 +133,18 @@ function collectFindings(file) {
       }
     }
 
+    for (const label of blacklistTermPatterns) {
+      if (lineText.includes(label)) {
+        findings.push({
+          file: relativeFile,
+          line: lineNo,
+          type: 'blacklist-term',
+          label,
+          message: warningMessage('blacklist-term', label),
+        });
+      }
+    }
+
     const enumMatches = lineText.match(rawEnumPattern) || [];
     for (const label of enumMatches) {
       findings.push({
@@ -149,12 +178,14 @@ function writeStepSummary(findings) {
 
   const aiCount = findings.filter((item) => item.type === 'ai-phrase').length;
   const vagueCount = findings.filter((item) => item.type === 'vague-reference').length;
+  const blacklistCount = findings.filter((item) => item.type === 'blacklist-term').length;
   const rawEnumCount = findings.filter((item) => item.type === 'raw-enum').length;
 
   let markdown = '# Content audit summary\n\n';
   markdown += `- Total findings: ${findings.length}\n`;
   markdown += `- AI phrase warnings: ${aiCount}\n`;
   markdown += `- Vague reference warnings: ${vagueCount}\n`;
+  markdown += `- Blacklist term warnings: ${blacklistCount}\n`;
   markdown += `- Raw enum warnings: ${rawEnumCount}\n\n`;
 
   if (findings.length === 0) {
@@ -175,6 +206,7 @@ const findings = files.flatMap((file) => collectFindings(file));
 
 const aiCount = findings.filter((item) => item.type === 'ai-phrase').length;
 const vagueCount = findings.filter((item) => item.type === 'vague-reference').length;
+const blacklistCount = findings.filter((item) => item.type === 'blacklist-term').length;
 const rawEnumCount = findings.filter((item) => item.type === 'raw-enum').length;
 
 console.log(`Content audit mode: ${strictMode ? 'strict mode' : 'warning mode'}`);
@@ -182,6 +214,7 @@ console.log(`Scanned files: ${files.length} (.mdx + .md)`);
 console.log(`Total findings: ${findings.length}`);
 console.log(`- AI phrase warnings: ${aiCount}`);
 console.log(`- Vague reference warnings: ${vagueCount}`);
+console.log(`- Blacklist term warnings: ${blacklistCount}`);
 console.log(`- Raw enum warnings: ${rawEnumCount}`);
 
 if (findings.length > 0) {
