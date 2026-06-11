@@ -6,20 +6,20 @@
 
 ```bash
 cd worker
-npm install
-npx wrangler login                       # 瀏覽器授權一次
+pnpm install
+pnpm exec wrangler login                  # 瀏覽器授權一次
 
 # 1) 建 D1 資料庫，把回傳的 database_id 貼進 wrangler.jsonc 的 database_id
-npx wrangler d1 create patronum
+pnpm exec wrangler d1 create patronum
 
 # 2) 建表
-npx wrangler d1 migrations apply patronum --remote
+pnpm exec wrangler d1 migrations apply patronum --remote
 
 # 3) 設管理密鑰（自己想一組長字串，之後刪壞留言／看提議要用）
-npx wrangler secret put ADMIN_TOKEN
+pnpm exec wrangler secret put ADMIN_TOKEN
 
 # 4) 部署，記下印出來的網址 https://patronum-api.<你的子網域>.workers.dev
-npx wrangler deploy
+pnpm exec wrangler deploy
 ```
 
 ## 把後端接到網站（一個變數）
