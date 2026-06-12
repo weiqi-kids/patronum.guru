@@ -62,7 +62,7 @@ const audioSrc = withBase(`/audio/${slug}.mp3`);
     const readStatus = root.querySelector<HTMLElement>('[data-readstatus]')!;
     const form = root.querySelector<HTMLFormElement>('[data-form]')!;
     const answerEl = root.querySelector<HTMLElement>('[data-answer]')!;
-    const sendBtn = form.querySelector('button')!;
+    const sendBtn = form.querySelector<HTMLButtonElement>('.guardian__send')!;
 
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const ctx = canvas.getContext('2d');
@@ -133,6 +133,7 @@ const audioSrc = withBase(`/audio/${slug}.mp3`);
     }
 
     playBtn.addEventListener('click', () => {
+      playBtn.disabled = true;
       if (!audio) {
         audio = new Audio(audioSrc);
         audio.addEventListener('ended', resetToIdle);
@@ -159,13 +160,16 @@ const audioSrc = withBase(`/audio/${slug}.mp3`);
           .then(() => {
             state = 'reading';
             playBtn.textContent = '暫停';
+            playBtn.disabled = false;
             if (reduceMotion) draw();
             pumpAmp();
           })
           .catch(() => {
+            playBtn.disabled = false;
             readStatus.textContent = '朗讀暫時播不出來。';
           });
       } else {
+        playBtn.disabled = false;
         audio.pause();
         resetToIdle();
       }
