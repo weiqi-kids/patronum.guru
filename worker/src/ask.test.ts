@@ -31,6 +31,12 @@ describe('validateAsk', () => {
     if (r.kind !== 'ok') throw new Error('unreachable');
     expect(r.question.length).toBe(MAX_QUESTION);
   });
+
+  it('context 保留換行', () => {
+    const r = validateAsk({ slug: 'x', question: 'hi', context: '第一段\n\n第二段' });
+    if (r.kind !== 'ok') throw new Error('unreachable');
+    expect(r.context).toBe('第一段\n\n第二段');
+  });
 });
 
 describe('buildAskUserPrompt', () => {

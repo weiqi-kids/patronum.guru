@@ -38,15 +38,18 @@ export type AskValidation =
   | { kind: 'bad'; error: string }
   | { kind: 'ok'; slug: string; question: string; context: string };
 
-// 去控制字元、trim、截斷。與 worker/src/index.ts 的 clean() 同義，獨立放這裡以利純測試。
-// 控制字元用 codePoint 過濾，避免在文件/編輯器裡寫字面控制字元 regex 被吃掉。
+// 去控制字元、trim、截斷。獨立放這裡以利純測試。
+// 邏輯與 worker/src/index.ts 的 clean() 等價：保留 \t(0x09)\n(0x0A)\r(0x0D)，
+// 去掉其餘 C0 控制字元（0x00–0x08,0x0B,0x0C,0x0E–0x1F）與 DEL(0x7F)。
+// index.ts 用 regex [ --]，這裡改用 codePoint 過濾，避免在原始碼中嵌入字面控制字元。
 function clean(s: unknown, max: number): string {
   if (typeof s !== 'string') return '';
   const stripped = Array.from(s)
     .filter((ch) => {
       const c = ch.codePointAt(0) as number;
-      // 去掉 C0 控制字元（0x00–0x1F）與 DEL（0x7F）；\t\n\r 也一併去掉，trim 不受影響。
-      return c > 0x1f && c !== 0x7f;
+      // 保留 \t(0x09)\n(0x0A)\r(0x0D)；去掉其餘 C0 控制字元（0x00–0x08,0x0B,0x0C,0x0E–0x1F）與 DEL(0x7F)。
+      // 與 worker/src/index.ts 的 clean() regex 等價。
+      return c === 0x09 || c === 0x0a || c === 0x0d || (c > 0x1f && c !== 0x7f);
     })
     .join('');
   return stripped.trim().slice(0, max);
@@ -58,7 +61,7 @@ export function validateAsk(data: Record<string, unknown>): AskValidation {
   const question = clean(data.question, MAX_QUESTION);
   const context = clean(data.context, MAX_CONTEXT);
   if (!slug) return { kind: 'bad', error: 'slug required' };
-  if (question.length < 1) return { kind: 'bad', error: '想問什麼呢？' };
+  if (!question) return { kind: 'bad', error: '想問什麼呢？' };
   return { kind: 'ok', slug, question, context };
 }
 
