@@ -178,7 +178,7 @@ docs/                 # 內部文件（superpowers、playbooks 等）
 
 ## 守護者語音 widget
 
-文章頁右下角的光霧守護形（`src/components/blocks/GuardianWidget.astro`）：
+全站右下角常駐的光霧守護形（`src/components/blocks/GuardianWidget.astro`，掛在 `Base.astro`，所有頁面都看得到）。文章頁額外經 `Base` 的 `guardianSlug` prop 傳入文章 slug，啟用朗讀與該篇 grounding：
 
 - **朗讀**：播放 `public/audio/<slug>.mp3`（站長手動上傳；聲線走中性／中低溫柔的 zh-TW）。沒有對應音檔時朗讀鈕自動隱藏，問答仍可用。播放時以 Web Audio 音量驅動光暈脈動，尊重 `prefers-reduced-motion`。
 - **問答**：就當前文章打字提問，送 `POST {PUBLIC_PATRONUM_API}/api/ask`（Cloudflare Worker → Claude），守護者以第一人稱、不裁決、拒答人生處方的口吻用文字回答。未設 `PUBLIC_PATRONUM_API` 時問答優雅降級。
