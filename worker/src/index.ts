@@ -12,10 +12,13 @@
 //
 // 防濫用：欄位長度上限、同 IP 限流、蜜罐欄位（website）、輸出由前端以 textContent 呈現。
 
+import { validateAsk, callClaude } from './ask';
+
 export interface Env {
   DB: D1Database;
   ALLOWED_ORIGINS: string;
   ADMIN_TOKEN: string;
+  ANTHROPIC_API_KEY: string;
 }
 
 const MAX_BODY = 2000;
@@ -139,6 +142,29 @@ export default {
           .bind(title, note, now, ipHash)
           .run();
         return json({ ok: true }, 201, cors);
+      }
+
+      // ── 守護者問答（公開）──
+      if (req.method === 'POST' && pathname === '/api/ask') {
+        const data = (await req.json().catch(() => ({}))) as Record<string, unknown>;
+        const v = validateAsk(data);
+        if (v.kind === 'honeypot') return json({ ok: true, answer: '' }, 200, cors);
+        if (v.kind === 'bad') return json({ error: v.error }, 400, cors);
+        if (!env.ANTHROPIC_API_KEY) return json({ error: '守護者暫時無法回應。' }, 503, cors);
+        const ipHash = await hashIp(req.headers.get('CF-Connecting-IP') ?? '', env.ADMIN_TOKEN);
+        const now = Math.floor(Date.now() / 1000);
+        if (await tooMany(env, 'ask_log', ipHash, now)) {
+          return json({ error: '慢一點，過一下再問。' }, 429, cors);
+        }
+        await env.DB.prepare('INSERT INTO ask_log (ip_hash, created_at) VALUES (?, ?)')
+          .bind(ipHash, now)
+          .run();
+        try {
+          const answer = await callClaude(env.ANTHROPIC_API_KEY, v.context, v.question);
+          return json({ ok: true, answer }, 200, cors);
+        } catch {
+          return json({ error: '守護者暫時無法回應，等一下再問。' }, 502, cors);
+        }
       }
 
       // ── 管理：看所有提議 ──
