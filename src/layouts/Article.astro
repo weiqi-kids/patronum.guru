@@ -8,6 +8,7 @@ import FaqAccordion from '@/components/blocks/FaqAccordion.astro';
 import ReferenceList from '@/components/blocks/ReferenceList.astro';
 import AiDisclosure from '@/components/blocks/AiDisclosure.astro';
 import Comments from '@/components/blocks/Comments.astro';
+import GuardianWidget from '@/components/blocks/GuardianWidget.astro';
 import ProposeTopic from '@/components/blocks/ProposeTopic.astro';
 import JsonLd from '@/components/seo/JsonLd.astro';
 import { AUTHOR_NAME, SITE_NAME, SITE_SUFFIX } from '@/data/site';
@@ -219,6 +220,7 @@ if (faqJsonLd) jsonLdBlocks.push(faqJsonLd);
           updatedDate={updatedDate}
         />
         {ogSlug && <Comments slug={ogSlug} />}
+        {ogSlug && <GuardianWidget slug={ogSlug} />}
         <ProposeTopic />
         <slot name="after-content" />
       </div>
