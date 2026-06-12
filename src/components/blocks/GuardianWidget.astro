@@ -1,0 +1,355 @@
+---
+// 守護者 Patronum 具象化 widget：右下角常駐光霧形。
+// 兩功能：(1) 播放 public/audio/<slug>.mp3 朗讀文章（音量驅動視覺）；
+//         (2) 就這篇文章打字問答（POST /api/ask，純文字回答，不發聲）。
+// 沿用 Comments.astro 的 .astro + client script + fetch Worker 模式，無新框架。
+import { withBase } from '@/utils/url';
+
+interface Props {
+  slug: string;
+}
+const { slug } = Astro.props;
+const apiBase = import.meta.env.PUBLIC_PATRONUM_API ?? '';
+const audioSrc = withBase(`/audio/${slug}.mp3`);
+---
+
+<aside
+  class="guardian"
+  data-api={apiBase}
+  data-slug={slug}
+  data-audio={audioSrc}
+  aria-label="守護者 Patronum"
+>
+  <button class="guardian__toggle" type="button" data-toggle aria-expanded="false" aria-controls="guardian-panel">
+    <canvas class="guardian__canvas" data-canvas width="72" height="72" aria-hidden="true"></canvas>
+    <span class="guardian__sigil-fallback" aria-hidden="true">守望</span>
+    <span class="sr-only">打開守護者</span>
+  </button>
+
+  <div class="guardian__panel" id="guardian-panel" data-panel hidden>
+    <p class="guardian__intro">我守在這道門前。要我念給你聽，或想問這篇的事，都可以。</p>
+
+    <div class="guardian__read">
+      <button class="guardian__play" type="button" data-play hidden>讓守護者念給你聽</button>
+      <span class="guardian__readstatus" data-readstatus aria-live="polite"></span>
+    </div>
+
+    <form class="guardian__form" data-form>
+      <textarea
+        name="question"
+        maxlength="500"
+        rows="2"
+        required
+        class="guardian__q"
+        placeholder="問問這篇文章的事"></textarea>
+      <input type="text" name="website" tabindex="-1" autocomplete="off" class="guardian__hp" aria-hidden="true" />
+      <button type="submit" class="guardian__send">問</button>
+    </form>
+    <p class="guardian__answer" data-answer aria-live="polite"></p>
+  </div>
+</aside>
+
+<script>
+  import { ampToVisual } from '@/utils/avatar-visual';
+
+  document.querySelectorAll<HTMLElement>('.guardian').forEach((root) => {
+    const api = (root.dataset.api ?? '').replace(/\/$/, '');
+    const audioSrc = root.dataset.audio ?? '';
+    const canvas = root.querySelector<HTMLCanvasElement>('[data-canvas]')!;
+    const toggle = root.querySelector<HTMLButtonElement>('[data-toggle]')!;
+    const panel = root.querySelector<HTMLElement>('[data-panel]')!;
+    const playBtn = root.querySelector<HTMLButtonElement>('[data-play]')!;
+    const readStatus = root.querySelector<HTMLElement>('[data-readstatus]')!;
+    const form = root.querySelector<HTMLFormElement>('[data-form]')!;
+    const answerEl = root.querySelector<HTMLElement>('[data-answer]')!;
+    const sendBtn = form.querySelector<HTMLButtonElement>('.guardian__send')!;
+
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const ctx = canvas.getContext('2d');
+
+    // ── 視覺狀態機 ──
+    type State = 'idle' | 'reading' | 'thinking';
+    let state: State = 'idle';
+    let liveAmp = 0; // reading 時由 analyser 餵入
+    let t = 0;
+
+    function draw() {
+      if (!ctx) return;
+      t += 0.03;
+      const breathing = (Math.sin(t) + 1) / 2; // 0..1
+      const amp = state === 'reading' ? liveAmp : breathing * (state === 'thinking' ? 0.6 : 0.35);
+      const { glow, scale } = ampToVisual(amp);
+      const w = canvas.width;
+      const h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+      const cx = w / 2;
+      const cy = h / 2;
+      const r = (w / 2 - 6) * scale;
+      const grad = ctx.createRadialGradient(cx, cy, r * 0.2, cx, cy, r);
+      // 光霧：銀霧白核心 → 暮色靛邊，半透明
+      grad.addColorStop(0, `rgba(245, 244, 250, ${0.35 + glow * 0.5})`);
+      grad.addColorStop(1, 'rgba(99, 102, 180, 0)');
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.fillStyle = grad;
+      ctx.fill();
+      if (!reduceMotion) requestAnimationFrame(draw);
+    }
+    // reduced-motion：畫一次靜態光形即可；否則進入動畫迴圈
+    draw();
+
+    // ── 朗讀（Web Audio 音量驅動）──
+    let audio: HTMLAudioElement | null = null;
+    let audioCtx: AudioContext | null = null;
+    let analyser: AnalyserNode | null = null;
+    let freq: Uint8Array<ArrayBuffer> | null = null;
+
+    // 探測音檔是否存在；不存在則隱藏朗讀鈕
+    if (audioSrc) {
+      fetch(audioSrc, { method: 'HEAD' })
+        .then((r) => {
+          if (r.ok) playBtn.hidden = false;
+          else readStatus.textContent = '朗讀即將開放。';
+        })
+        .catch(() => {
+          readStatus.textContent = '朗讀即將開放。';
+        });
+    }
+
+    function pumpAmp() {
+      if (state !== 'reading' || !analyser || !freq) return;
+      analyser.getByteFrequencyData(freq);
+      let sum = 0;
+      for (let i = 0; i < freq.length; i += 1) sum += freq[i];
+      liveAmp = Math.min(1, sum / freq.length / 128);
+      requestAnimationFrame(pumpAmp);
+    }
+
+    function resetToIdle() {
+      state = 'idle';
+      liveAmp = 0;
+      playBtn.textContent = '讓守護者念給你聽';
+      if (reduceMotion) draw();
+    }
+
+    playBtn.addEventListener('click', () => {
+      playBtn.disabled = true;
+      if (!audio) {
+        audio = new Audio(audioSrc);
+        audio.addEventListener('ended', resetToIdle);
+        try {
+          const AC =
+            window.AudioContext ??
+            (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+          audioCtx = new AC();
+          const srcNode = audioCtx.createMediaElementSource(audio);
+          analyser = audioCtx.createAnalyser();
+          analyser.fftSize = 64;
+          freq = new Uint8Array(analyser.frequencyBinCount);
+          srcNode.connect(analyser);
+          analyser.connect(audioCtx.destination);
+        } catch {
+          // Web Audio 不支援：照樣播，只是沒有音量驅動動效
+          analyser = null;
+        }
+      }
+      if (audio.paused) {
+        audioCtx?.resume();
+        audio
+          .play()
+          .then(() => {
+            state = 'reading';
+            playBtn.textContent = '暫停';
+            playBtn.disabled = false;
+            if (reduceMotion) draw();
+            pumpAmp();
+          })
+          .catch(() => {
+            playBtn.disabled = false;
+            readStatus.textContent = '朗讀暫時播不出來。';
+          });
+      } else {
+        playBtn.disabled = false;
+        audio.pause();
+        resetToIdle();
+      }
+    });
+
+    // ── 開合 ──
+    toggle.addEventListener('click', () => {
+      const open = panel.hidden;
+      panel.hidden = !open;
+      toggle.setAttribute('aria-expanded', String(open));
+    });
+
+    // ── 問答 ──
+    if (!api) sendBtn.disabled = true;
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (!api) {
+        answerEl.textContent = '守護者暫時無法回應。';
+        return;
+      }
+      const fd = new FormData(form);
+      const question = String(fd.get('question') ?? '').trim();
+      if (!question) return;
+      // grounding：直接讀頁面正文（.prose）
+      const context = (document.querySelector('.prose')?.textContent ?? '').trim().slice(0, 8000);
+      const wasReading = state === 'reading';
+      sendBtn.disabled = true;
+      if (!wasReading) {
+        state = 'thinking';
+        if (reduceMotion) draw();
+      }
+      answerEl.textContent = '守護者正在想…';
+      fetch(`${api}/api/ask`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug: root.dataset.slug, question, context, website: fd.get('website') }),
+      })
+        .then((r) => r.json().then((d) => ({ ok: r.ok, d })))
+        .then(({ ok, d }) => {
+          sendBtn.disabled = false;
+          if (!wasReading) {
+            state = 'idle';
+            if (reduceMotion) draw();
+          }
+          answerEl.textContent = ok && d.answer ? d.answer : (d.error ?? '守護者暫時無法回應。');
+        })
+        .catch(() => {
+          sendBtn.disabled = false;
+          if (!wasReading) {
+            state = 'idle';
+            if (reduceMotion) draw();
+          }
+          answerEl.textContent = '守護者暫時無法回應，等一下再問。';
+        });
+    });
+  });
+</script>
+
+<style>
+  .guardian {
+    position: fixed;
+    right: 1.25rem;
+    bottom: 1.25rem;
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+  }
+  .guardian__toggle {
+    width: 72px;
+    height: 72px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    position: relative;
+    padding: 0;
+  }
+  .guardian__canvas {
+    width: 72px;
+    height: 72px;
+    display: block;
+  }
+  .guardian__sigil-fallback {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font-family: var(--font-serif);
+    font-size: var(--text-xs);
+    color: var(--color-navy);
+    pointer-events: none;
+  }
+  .guardian__panel {
+    width: min(20rem, 78vw);
+    background: var(--color-paper);
+    border: 1px solid var(--border-subtle, var(--color-fog));
+    border-radius: var(--radius-card);
+    padding: 1rem 1.1rem;
+    box-shadow: 0 8px 30px color-mix(in oklch, var(--color-navy) 18%, transparent);
+  }
+  .guardian__intro {
+    font-size: var(--text-sm);
+    line-height: 1.7;
+    color: color-mix(in oklch, var(--color-ink) 80%, transparent);
+    margin: 0 0 0.75rem;
+  }
+  .guardian__read {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
+  }
+  .guardian__play {
+    font-family: var(--font-ui);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    color: var(--color-paper);
+    background: var(--color-accent);
+    border: none;
+    border-radius: var(--radius-pill);
+    padding: 0.45rem 1rem;
+    cursor: pointer;
+  }
+  .guardian__readstatus,
+  .guardian__answer {
+    font-size: var(--text-xs);
+    color: color-mix(in oklch, var(--color-ink) 70%, transparent);
+  }
+  .guardian__form {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-end;
+  }
+  .guardian__q {
+    flex: 1;
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    color: var(--color-ink);
+    background: var(--color-paper);
+    border: 1px solid var(--border-subtle, var(--color-fog));
+    border-radius: var(--radius-sm);
+    padding: 0.5rem 0.7rem;
+    resize: vertical;
+    min-height: 2.5rem;
+  }
+  .guardian__hp {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+  }
+  .guardian__send {
+    font-family: var(--font-ui);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--color-paper);
+    background: var(--color-accent);
+    border: none;
+    border-radius: var(--radius-pill);
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+  }
+  .guardian__send:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+  .guardian__answer {
+    margin: 0.75rem 0 0;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+</style>

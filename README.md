@@ -81,7 +81,7 @@ src/
     List.astro        # 列表版型
     Policy.astro      # 靜態政策頁版型
   components/
-    blocks/           # 頁面級區塊（TopNav, Footer, ArticleCard, AiDisclosure...）
+    blocks/           # 頁面級區塊（TopNav, Footer, ArticleCard, AiDisclosure, GuardianWidget...）
     ui/               # 通用元件（Button, CategoryTag, SearchBar, Breadcrumb...）
     seo/              # JSON-LD 注入（JsonLd.astro）
   pages/
@@ -173,6 +173,15 @@ docs/                 # 內部文件（superpowers、playbooks 等）
 `docs-sync-check.yml` 在每個 PR 上執行：若功能程式碼路徑（`src/`, `scripts/`, `.github/workflows/`, `astro.config.mjs`, `package.json`）有變動，**必須同步更新 README.md、AGENTS.md 或 `docs/`**，否則 CI 擋 PR。
 
 例外：在 PR body 或任一 commit message 加入 `[skip docs]`（適用純測試、輕微設定微調、typo 修正等不影響架構的異動）。
+
+---
+
+## 守護者語音 widget
+
+文章頁右下角的光霧守護形（`src/components/blocks/GuardianWidget.astro`）：
+
+- **朗讀**：播放 `public/audio/<slug>.mp3`（站長手動上傳；聲線走中性／中低溫柔的 zh-TW）。沒有對應音檔時朗讀鈕自動隱藏，問答仍可用。播放時以 Web Audio 音量驅動光暈脈動，尊重 `prefers-reduced-motion`。
+- **問答**：就當前文章打字提問，送 `POST {PUBLIC_PATRONUM_API}/api/ask`（Cloudflare Worker → Claude），守護者以第一人稱、不裁決、拒答人生處方的口吻用文字回答。未設 `PUBLIC_PATRONUM_API` 時問答優雅降級。
 
 ---
 
